@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Contestant Rankings')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<div class="rv-page" style="max-width:900px">
+    <h2 class="rv-page-title mb-4"><i class="fa-solid fa-ranking-star"></i> Contestant Rankings</h2>
+
+    <form class="rv-card mb-4 d-flex gap-2 align-items-end flex-wrap" method="get" th:action="@{/reports/rankings}">
+        <div class="flex-grow-1">
+            <label class="form-label mb-1">Reality Show</label>
+            <select name="showId" class="form-select" onchange="this.form.submit()">
+                <option value="">Select a show</option>
+                <option th:each="s : ${shows}" th:value="${s.id}" th:text="${s.name}"
+                        th:selected="${selectedShowId != null and selectedShowId == s.id}"></option>
+            </select>
+        </div>
+        <a th:if="${selectedShowId != null}" class="btn btn-outline-dark"
+           th:href="@{/reports/rankings/export(showId=${selectedShowId})}">
+            <i class="fa-solid fa-file-csv"></i> Export CSV
+        </a>
+    </form>
+
+    <div class="rv-empty-state" th:if="${selectedShowId == null}">
+        <i class="fa-solid fa-ranking-star rv-empty-icon"></i>
+        <h6>No show selected</h6>
+        <p>Choose a show above to see its contestant rankings.</p>
+    </div>
+
+    <div th:if="${selectedShowId != null}">
+        <p class="text-muted mb-3">
+            <strong th:text="${showName}" style="color:var(--rv-text)">Show Name</strong>
+            — ranked by combined score (audience votes + judge scores)
+        </p>
+
+        <div class="rv-empty-state" th:if="${#lists.isEmpty(rankings)}">
+            <i class="fa-solid fa-user-slash rv-empty-icon"></i>
+            <h6>No contestants found</h6>
+            <p>This show doesn't have any ranked contestants yet.</p>
+        </div>
+
+        <!-- Podium: top 3 -->
+        <div class="rv-podium" th:if="${!#lists.isEmpty(rankings)}">
+            <div class="podium-step podium-2" th:if="${rankings.size() >= 2}" th:with="row=${rankings[1]}">
+                <div class="podium-rank-pill">2</div>
+                <div class="rv-avatar-placeholder"
+                     th:text="${#strings.substring(row.contestantName,0,1)}">A</div>
+                <div class="podium-medal">🥈</div>
+                <div class="podium-name" th:text="${row.contestantName}">Name</div>
+                <div class="podium-score" th:text="${row.totalVotes} + ' votes'">0 votes</div>
+            </div>
+            <div class="podium-step podium-1" th:if="${rankings.size() >= 1}" th:with="row=${rankings[0]}">
+                <div class="podium-rank-pill">1</div>
+                <div class="rv-avatar-placeholder"
+                     th:text="${#strings.substring(row.contestantName,0,1)}">A</div>
+                <div class="podium-medal">🥇</div>
+                <div class="podium-name" th:text="${row.contestantName}">Name</div>
+                <div class="podium-score" th:text="${row.totalVotes} + ' votes'">0 votes</div>
+            </div>
+            <div class="podium-step podium-3" th:if="${rankings.size() >= 3}" th:with="row=${rankings[2]}">
+                <div class="podium-rank-pill">3</div>
+                <div class="rv-avatar-placeholder"
+                     th:text="${#strings.substring(row.contestantName,0,1)}">A</div>
+                <div class="podium-medal">🥉</div>
+                <div class="podium-name" th:text="${row.contestantName}">Name</div>
+                <div class="podium-score" th:text="${row.totalVotes} + ' votes'">0 votes</div>
+            </div>
+        </div>
+
+        <!-- 4th place onward -->
+        <div class="rv-card p-0" th:if="${!#lists.isEmpty(rankings) and rankings.size() > 3}">
+            <div class="p-3 border-bottom">
+                <small class="text-muted rv-mono text-uppercase">Full leaderboard</small>
+            </div>
+            <table class="table mb-0 align-middle">
+                <thead>
+                <tr><th>#</th><th>Contestant</th><th>Category</th><th>Status</th><th>Votes</th><th>Avg. Judge Score</th><th>Combined Score</th></tr>
+                </thead>
+                <tbody>
+                <tr th:each="row, iter : ${rankings}" th:if="${iter.index >= 3}">
+                    <td class="rv-mono" th:text="${row.rank}"></td>
+                    <td th:text="${row.contestantName}"></td>
+                    <td th:text="${row.talentCategory}"></td>
+                    <td><span class="status-badge" th:classappend="'status-' + ${row.status}" th:text="${row.status}"></span></td>
+                    <td class="fw-semibold vote-count" th:text="${row.totalVotes}"></td>
+                    <td th:text="${row.avgJudgeScore != null ? #numbers.formatDecimal(row.avgJudgeScore, 1, 1) + ' / 100' : '— not judged yet —'}"></td>
+                    <td class="fw-semibold" th:text="${#numbers.formatDecimal(row.combinedScore, 1, 1)}"></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="rv-chart-card mt-4" th:if="${!#lists.isEmpty(rankings)}">
+            <h6 class="rv-page-title mb-3" style="font-size:1rem;"><i class="fa-solid fa-chart-column"></i> Votes by Contestant</h6>
+            <canvas id="rankingsChart" height="90"></canvas>
+        </div>
+    </div>
+</div>
+
+<script th:inline="javascript">
+/*<![CDATA[*/
+document.addEventListener('DOMContentLoaded', function () {
+    var canvas = document.getElementById('rankingsChart');
+    if (!canvas || typeof Chart === 'undefined') return;
+    var rankings = /*[[${rankings}]]*/ [];
+    new Chart(canvas.getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: rankings.map(function (r) { return r.contestantName; }),
+            datasets: [{
+                label: 'Total Votes',
+                data: rankings.map(function (r) { return r.totalVotes; }),
+                backgroundColor: 'rgba(0, 229, 255, 0.55)',
+                borderColor: '#00e5ff',
+                borderWidth: 1,
+                borderRadius: 6,
+                maxBarThickness: 42
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { ticks: { color: '#a4a8b4' }, grid: { display: false } },
+                y: { ticks: { color: '#a4a8b4' }, grid: { color: 'rgba(255,255,255,.06)' }, beginAtZero: true }
+            }
+        }
+    });
+});
+/*]]>*/
+</script>
+</body>
+</html>

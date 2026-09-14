@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Dashboard')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<div class="rv-page" style="max-width:1100px">
+    <h2 class="rv-page-title mb-4"><i class="fa-solid fa-chart-line"></i> Reports Dashboard</h2>
+
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-lg-3">
+            <div class="kpi-card">
+                <div class="kpi-icon"><i class="fa-solid fa-clapperboard"></i></div>
+                <div>
+                    <div class="kpi-value" th:text="${stats.totalShows}">0</div>
+                    <div class="kpi-label">Active Shows</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="kpi-card">
+                <div class="kpi-icon"><i class="fa-solid fa-users"></i></div>
+                <div>
+                    <div class="kpi-value" th:text="${stats.totalContestants}">0</div>
+                    <div class="kpi-label">Contestants</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="kpi-card">
+                <div class="kpi-icon"><i class="fa-solid fa-square-poll-vertical"></i></div>
+                <div>
+                    <div class="kpi-value" th:text="${stats.openSessions}">0</div>
+                    <div class="kpi-label">Open Voting Sessions</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="kpi-card">
+                <div class="kpi-icon kpi-icon-pink"><i class="fa-solid fa-check-to-slot"></i></div>
+                <div>
+                    <div class="kpi-value" th:text="${stats.totalVotes}">0</div>
+                    <div class="kpi-label">Total Votes Cast</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="kpi-card">
+                <div class="kpi-icon kpi-icon-pink"><i class="fa-solid fa-user-check"></i></div>
+                <div>
+                    <div class="kpi-value" th:text="${stats.totalVoters}">0</div>
+                    <div class="kpi-label">Unique Voters</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="kpi-card">
+                <div class="kpi-icon" th:classappend="${stats.flaggedSecurityEvents > 0} ? 'kpi-icon-danger' : ''">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+                <div>
+                    <div class="kpi-value" th:text="${stats.flaggedSecurityEvents}"
+                         th:style="${stats.flaggedSecurityEvents > 0} ? 'color:var(--rv-danger)' : ''">0</div>
+                    <div class="kpi-label">Flagged Security Events</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4 align-items-stretch">
+        <div class="col-lg-7">
+            <div class="rv-chart-card h-100">
+                <h6 class="rv-page-title mb-3" style="font-size:1rem;"><i class="fa-solid fa-chart-simple"></i> Platform Totals</h6>
+                <canvas id="dashboardChart" height="140"></canvas>
+                <p class="text-muted small mt-2 mb-0">
+                    Reflects live totals only — Reality Vote doesn't track per-day history yet, so this isn't a fabricated trend line.
+                </p>
+            </div>
+        </div>
+        <div class="col-lg-5">
+            <div class="rv-card">
+                <h5 class="rv-page-title mb-3" style="font-size:1.2rem;"><i class="fa-solid fa-ranking-star"></i> Jump to Contestant Rankings</h5>
+                <div class="d-flex flex-wrap gap-2" th:if="${!#lists.isEmpty(shows)}">
+                    <a th:each="s : ${shows}" class="btn btn-sm btn-outline-dark"
+                       th:href="@{/reports/rankings(showId=${s.id})}" th:text="${s.name}"></a>
+                </div>
+                <div class="rv-empty-state py-4" th:if="${#lists.isEmpty(shows)}">
+                    <i class="fa-solid fa-clapperboard rv-empty-icon"></i>
+                    <h6>No shows yet</h6>
+                    <p>Rankings will appear here once a show has been created.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script th:inline="javascript">
+/*<![CDATA[*/
+document.addEventListener('DOMContentLoaded', function () {
+    var canvas = document.getElementById('dashboardChart');
+    if (!canvas || typeof Chart === 'undefined') return;
+    var stats = /*[[${stats}]]*/ {};
+    new Chart(canvas.getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: ['Shows', 'Contestants', 'Open Sessions', 'Total Votes', 'Unique Voters'],
+            datasets: [{
+                data: [stats.totalShows, stats.totalContestants, stats.openSessions, stats.totalVotes, stats.totalVoters],
+                backgroundColor: ['#00e5ff', '#00e5ff', '#8b5cf6', '#ff1ee9', '#ff1ee9'],
+                borderRadius: 6,
+                maxBarThickness: 46
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { ticks: { color: '#a4a8b4' }, grid: { color: 'rgba(255,255,255,.06)' }, beginAtZero: true },
+                y: { ticks: { color: '#a4a8b4' }, grid: { display: false } }
+            }
+        }
+    });
+});
+/*]]>*/
+</script>
+</body>
+</html>

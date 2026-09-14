@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Not Found')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+<div class="rv-page text-center py-5">
+    <div class="rv-card mx-auto" style="max-width:460px">
+        <i class="fa-solid fa-satellite-dish rv-empty-icon" style="font-size:2.4rem;"></i>
+        <h1 class="rv-page-title mt-3 mb-2" style="font-size:2.4rem;">404</h1>
+        <p class="text-muted" th:text="${message} ?: 'We could not find what you were looking for.'">We couldn't find what you were looking for.</p>
+        <a class="btn btn-accent mt-2" th:href="@{/}"><i class="fa-solid fa-house"></i> Back to Home</a>
+    </div>
+</div>
+</body>
+</html>
