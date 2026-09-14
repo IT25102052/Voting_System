@@ -1,2 +1,2 @@
-# Voting_System
-Y2S1 Sliit project.
+# Web Voting System for Reality Shows
+( Y2S1 - Sliit project)
