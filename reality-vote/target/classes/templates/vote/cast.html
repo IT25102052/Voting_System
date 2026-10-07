@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Cast Your Vote')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<div class="on-air-strip"><span class="dot"></span> Voting is open — every vote updates the scoreboard live</div>
+
+<div class="rv-page" style="max-width:800px">
+    <a class="btn btn-sm btn-outline-secondary mb-3" th:href="@{/vote}">&larr; Back to Open Sessions</a>
+
+    <div role="alert" class="alert alert-success" th:if="${successMessage}" th:text="${successMessage}"></div>
+    <div role="alert" class="alert alert-danger" th:if="${errorMessage}" th:text="${errorMessage}"></div>
+
+    <h4 class="rv-page-title mb-1"
+        th:text="${votingSession.episode.season.show.name} + ' — Ep. ' + ${votingSession.episode.episodeNumber} + ': ' + ${votingSession.episode.title}">
+        Show / Episode
+    </h4>
+    <p class="text-muted mb-3 rv-mono" style="font-size:.85rem;">Voting closes <span th:text="${votingSession.endTime}"></span></p>
+
+    <div class="rv-card text-center mb-4" th:if="${votingSession.endTime}">
+        <div class="pass-label mb-2">Voting closes in</div>
+        <div class="rv-countdown" id="rv-countdown"
+             th:data-end="${votingSession.endTime}" th:data-start="${votingSession.startTime}">
+            <div class="seg"><div class="num" data-d>00</div><div class="unit">Days</div></div>
+            <div class="seg"><div class="num" data-h>00</div><div class="unit">Hrs</div></div>
+            <div class="seg"><div class="num" data-m>00</div><div class="unit">Min</div></div>
+            <div class="seg"><div class="num" data-s>00</div><div class="unit">Sec</div></div>
+        </div>
+        <div class="rv-countdown-track" role="progressbar" aria-label="Time remaining" aria-valuemin="0" aria-valuemax="100">
+            <div class="rv-countdown-fill" id="rv-countdown-fill" style="width:100%"></div>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-6" th:each="c : ${votingSession.contestants}">
+            <div class="show-card js-vote-card d-flex justify-content-between align-items-center h-100">
+                <div class="d-flex align-items-center gap-3">
+                    <img th:if="${c.photoPath}" th:src="@{'/uploads/' + ${c.photoPath}}" loading="lazy"
+                         style="width:56px;height:56px;object-fit:cover;border-radius:12px" alt="">
+                    <div th:unless="${c.photoPath}"
+                         style="width:56px;height:56px;border-radius:12px;" class="rv-avatar-placeholder">
+                        <i class="fa-solid fa-user"></i>
+                    </div>
+                    <div>
+                        <div class="fw-semibold" th:text="${c.fullName}">Name</div>
+                        <small class="text-muted rv-mono" th:text="'#' + ${c.id} + ' · ' + ${c.talentCategory}"></small>
+                    </div>
+                </div>
+                <form method="post" class="js-vote-form" th:action="@{'/vote/' + ${votingSession.id} + '/contestants/' + ${c.id}}">
+                    <button class="btn btn-sm btn-accent" type="submit" th:aria-label="'Vote for ' + ${c.fullName}">
+                        <i class="fa-solid fa-check-to-slot"></i> Vote
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="rv-card">
+        <h5 class="rv-page-title mb-3" style="font-size:1.3rem;"><i class="fa-solid fa-chart-simple"></i> Live Results</h5>
+        <div th:replace="~{voting-sessions/_results :: results}"></div>
+    </div>
+</div>
+
+<script th:inline="javascript">
+(function () {
+    var el = document.getElementById('rv-countdown');
+    if (!el) return;
+    var end = new Date(el.getAttribute('data-end'));
+    var startAttr = el.getAttribute('data-start');
+    var start = startAttr ? new Date(startAttr) : null;
+    if (isNaN(end.getTime())) return;
+    var totalSpan = (start && !isNaN(start.getTime())) ? (end.getTime() - start.getTime()) : null;
+    var dEl = el.querySelector('[data-d]'), hEl = el.querySelector('[data-h]'),
+        mEl = el.querySelector('[data-m]'), sEl = el.querySelector('[data-s]');
+    var fill = document.getElementById('rv-countdown-fill');
+    var track = fill ? fill.parentElement : null;
+    function pad(n) { return String(n).padStart(2, '0'); }
+    function tick() {
+        var diff = end.getTime() - Date.now();
+        if (diff <= 0) {
+            dEl.textContent = hEl.textContent = mEl.textContent = sEl.textContent = '00';
+            if (fill) fill.style.width = '0%';
+            clearInterval(timer);
+            return;
+        }
+        var totalSec = Math.floor(diff / 1000);
+        var d = Math.floor(totalSec / 86400);
+        var h = Math.floor((totalSec % 86400) / 3600);
+        var m = Math.floor((totalSec % 3600) / 60);
+        var s = totalSec % 60;
+        dEl.textContent = pad(d); hEl.textContent = pad(h); mEl.textContent = pad(m); sEl.textContent = pad(s);
+        if (fill && totalSpan) {
+            var pct = Math.max(0, Math.min(100, (diff / totalSpan) * 100));
+            fill.style.width = pct + '%';
+            if (track) track.setAttribute('aria-valuenow', Math.round(pct));
+        }
+    }
+    tick();
+    var timer = setInterval(tick, 1000);
+})();
+</script>
+</body>
+</html>
