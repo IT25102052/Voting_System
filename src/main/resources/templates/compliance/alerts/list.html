@@ -13,15 +13,15 @@
 
     <div class="d-flex align-items-center justify-content-between mb-4">
         <div class="d-flex align-items-center gap-3">
-            <a th:href="@{/compliance/dashboard}" class="btn btn-sm btn-outline-dark d-inline-flex align-items-center gap-1">
-                <span th:replace="~{fragments/heroicons :: arrowLeft('heroicon-sm')}"></span> Dashboard
+            <a th:href="@{/compliance/dashboard}" class="btn btn-sm btn-outline-dark">
+                <i class="fa-solid fa-arrow-left"></i> Dashboard
             </a>
-            <h2 class="rv-page-title mb-0 d-flex align-items-center gap-2">
-                <span th:replace="~{fragments/heroicons :: bellAlert('heroicon-md')}"></span> Security Alerts
+            <h2 class="rv-page-title mb-0">
+                <i class="fa-solid fa-bell"></i> Security Alerts
             </h2>
         </div>
-        <a th:href="@{/compliance/alerts/new}" class="btn btn-accent d-inline-flex align-items-center gap-1">
-            <span th:replace="~{fragments/heroicons :: plus('heroicon-sm')}"></span> Raise Alert
+        <a th:href="@{/compliance/alerts/new}" class="btn btn-accent">
+            <i class="fa-solid fa-plus"></i> Raise Alert
         </a>
     </div>
 
@@ -51,7 +51,7 @@
     </div>
 
     <div class="rv-card text-center py-5" th:if="${#lists.isEmpty(alerts)}">
-        <span th:replace="~{fragments/heroicons :: shieldCheck('heroicon-xl mb-3')}" style="color:#00e5ff;opacity:.4;display:inline-block;"></span>
+        <i class="fa-solid fa-shield-check fa-2x mb-3" style="color:#00e5ff;opacity:.4"></i>
         <p class="text-muted mb-0">No security alerts have been raised yet.</p>
     </div>
 
@@ -89,9 +89,8 @@
                 <td class="small text-muted" th:text="${a.createdDate}"></td>
                 <td>
                     <a class="btn btn-sm btn-outline-dark"
-                       th:href="@{/compliance/alerts/{id}(id=${a.id})}"
-                       title="View Alert">
-                        <span th:replace="~{fragments/heroicons :: eye('heroicon-sm')}"></span>
+                       th:href="@{/compliance/alerts/{id}(id=${a.id})}">
+                        <i class="fa-solid fa-eye"></i>
                     </a>
                 </td>
             </tr>

@@ -5,11 +5,9 @@
 <nav th:replace="~{fragments/layout :: navbar}"></nav>
 <div class="rv-page" style="max-width:850px">
     <div class="d-flex align-items-center justify-content-between mb-4">
-        <h2 class="rv-page-title mb-0 d-flex align-items-center gap-2">
-            <span th:replace="~{fragments/heroicons :: calendarDays('heroicon-md')}"></span> Schedule Advertisement
-        </h2>
-        <a th:href="@{/compliance/advertising/{id}(id=${advertisement.id})}" class="btn btn-sm btn-outline-dark d-inline-flex align-items-center gap-1">
-            <span th:replace="~{fragments/heroicons :: arrowLeft('heroicon-sm')}"></span> Back to Review
+        <h2 class="rv-page-title mb-0"><i class="fa-solid fa-calendar-check"></i> Schedule Advertisement</h2>
+        <a th:href="@{/compliance/advertising/{id}(id=${advertisement.id})}" class="btn btn-sm btn-outline-dark">
+            <i class="fa-solid fa-arrow-left"></i> Back to Review
         </a>
     </div>
 
@@ -31,9 +29,7 @@
     <!-- Schedule form -->
     <div class="rv-card">
         <form th:action="@{/compliance/advertising/{id}/schedule(id=${advertisement.id})}" method="post">
-            <h5 class="rv-page-title mb-3 d-flex align-items-center gap-2">
-                <span th:replace="~{fragments/heroicons :: clock('heroicon-sm')}"></span> Display Window
-            </h5>
+            <h5 class="rv-page-title mb-3"><i class="fa-solid fa-clock"></i> Display Window</h5>
             <p class="text-muted small mb-3">
                 Set when this ad is eligible to show. Leave empty for "immediately" (start) or "no end" (end).
                 The ad must also be <strong>ACTIVE</strong> and assigned to at least one session to actually appear to viewers.
@@ -52,9 +48,7 @@
                 </div>
             </div>
 
-            <h5 class="rv-page-title mb-3 d-flex align-items-center gap-2">
-                <span th:replace="~{fragments/heroicons :: tv('heroicon-sm')}"></span> Assign to Voting Sessions
-            </h5>
+            <h5 class="rv-page-title mb-3"><i class="fa-solid fa-tv"></i> Assign to Voting Sessions</h5>
             <p class="text-muted small mb-3">Select which voting sessions this ad should appear in for viewers.</p>
 
             <div class="table-responsive mb-4">
@@ -95,9 +89,7 @@
             </div>
 
             <div class="d-flex gap-2">
-                <button type="submit" class="btn btn-accent d-inline-flex align-items-center gap-1">
-                    <span th:replace="~{fragments/heroicons :: check('heroicon-sm')}"></span> Save Schedule
-                </button>
+                <button type="submit" class="btn btn-accent"><i class="fa-solid fa-save"></i> Save Schedule</button>
                 <a th:href="@{/compliance/advertising/{id}(id=${advertisement.id})}" class="btn btn-outline-dark">Cancel</a>
             </div>
         </form>

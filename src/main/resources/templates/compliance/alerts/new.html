@@ -6,21 +6,19 @@
 <div class="rv-page" style="max-width:680px">
 
     <div class="d-flex align-items-center gap-3 mb-4">
-        <a th:href="@{/compliance/alerts}" class="btn btn-sm btn-outline-dark d-inline-flex align-items-center gap-1">
-            <span th:replace="~{fragments/heroicons :: arrowLeft('heroicon-sm')}"></span> Alerts
+        <a th:href="@{/compliance/alerts}" class="btn btn-sm btn-outline-dark">
+            <i class="fa-solid fa-arrow-left"></i> Alerts
         </a>
-        <h2 class="rv-page-title mb-0 d-flex align-items-center gap-2">
-            <span th:replace="~{fragments/heroicons :: bellAlert('heroicon-md')}"></span> Raise Security Alert
+        <h2 class="rv-page-title mb-0">
+            <i class="fa-solid fa-bell-exclamation"></i> Raise Security Alert
         </h2>
     </div>
 
     <div class="rv-card">
-        <p class="text-muted small mb-3 d-flex align-items-center gap-2">
-            <span th:replace="~{fragments/heroicons :: informationCircle('heroicon-sm')}" style="color:var(--rv-cyan)"></span>
-            <span>
-                Once raised, an alert cannot be deleted — it remains as evidence.
-                You can update the status and description at any time.
-            </span>
+        <p class="text-muted small mb-3">
+            <i class="fa-solid fa-circle-info"></i>
+            Once raised, an alert cannot be deleted — it remains as evidence.
+            You can update the status and description at any time.
         </p>
 
         <form method="post" th:action="@{/compliance/alerts}" th:object="${alert}">
@@ -66,8 +64,8 @@
             </div>
 
             <div class="d-flex gap-2">
-                <button class="btn btn-accent d-inline-flex align-items-center gap-1" type="submit">
-                    <span th:replace="~{fragments/heroicons :: bellAlert('heroicon-sm')}"></span> Raise Alert
+                <button class="btn btn-accent" type="submit">
+                    <i class="fa-solid fa-bell"></i> Raise Alert
                 </button>
                 <a th:href="@{/compliance/alerts}" class="btn btn-outline-dark">Cancel</a>
             </div>

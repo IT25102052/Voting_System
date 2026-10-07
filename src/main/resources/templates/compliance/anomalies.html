@@ -7,12 +7,10 @@
 <div class="rv-page" style="max-width:900px">
 
     <div class="d-flex align-items-center gap-3 mb-4">
-        <a th:href="@{/compliance/dashboard}" class="btn btn-sm btn-outline-dark d-inline-flex align-items-center gap-1">
-            <span th:replace="~{fragments/heroicons :: arrowLeft('heroicon-sm')}"></span> Dashboard
+        <a th:href="@{/compliance/dashboard}" class="btn btn-sm btn-outline-dark">
+            <i class="fa-solid fa-arrow-left"></i> Dashboard
         </a>
-        <h2 class="rv-page-title mb-0 d-flex align-items-center gap-2">
-            <span th:replace="~{fragments/heroicons :: exclamationTriangle('heroicon-md')}"></span> Anomaly Detection
-        </h2>
+        <h2 class="rv-page-title mb-0"><i class="fa-solid fa-bug"></i> Anomaly Detection</h2>
     </div>
 
     <!-- Session selector -->
@@ -28,8 +26,8 @@
             </select>
         </div>
         <div class="col-md-4">
-            <button class="btn btn-outline-dark w-100 d-inline-flex align-items-center justify-content-center gap-1" type="submit">
-                <span th:replace="~{fragments/heroicons :: magnifyingGlass('heroicon-sm')}"></span> Detect Anomalies
+            <button class="btn btn-outline-dark w-100" type="submit">
+                <i class="fa-solid fa-magnifying-glass"></i> Detect Anomalies
             </button>
         </div>
     </form>
@@ -37,9 +35,7 @@
     <div th:if="${anomalyReport}">
         <div class="rv-card mb-4">
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <h5 class="rv-page-title mb-0 d-flex align-items-center gap-2">
-                    <span th:replace="~{fragments/heroicons :: exclamationTriangle('heroicon-sm')}"></span> Results
-                </h5>
+                <h5 class="rv-page-title mb-0"><i class="fa-solid fa-triangle-exclamation"></i> Results</h5>
                 <span class="status-badge"
                       th:classappend="${anomalyReport.totalFlaggedEvents > 0} ? 'status-ELIMINATED' : 'status-ACTIVE'"
                       th:text="${anomalyReport.totalFlaggedEvents > 0} ? ${anomalyReport.totalFlaggedEvents} + ' Flagged Events' : 'No Anomalies'">
@@ -51,18 +47,16 @@
             </div>
 
             <ul class="list-group list-group-flush" th:unless="${anomalyReport.anomalyDescriptions.isEmpty()}">
-                <li class="list-group-item bg-transparent d-flex align-items-center gap-2" th:each="desc : ${anomalyReport.anomalyDescriptions}"
+                <li class="list-group-item bg-transparent" th:each="desc : ${anomalyReport.anomalyDescriptions}"
                     style="border-color:var(--rv-border);">
-                    <span th:replace="~{fragments/heroicons :: exclamationTriangle('heroicon-sm text-warning flex-shrink-0')}"></span>
+                    <i class="fa-solid fa-circle-dot text-warning me-2"></i>
                     <span th:text="${desc}"></span>
                 </li>
             </ul>
         </div>
 
         <div class="rv-card" th:unless="${anomalyReport.topSuspiciousActors.isEmpty()}">
-            <h5 class="rv-page-title mb-3 d-flex align-items-center gap-2">
-                <span th:replace="~{fragments/heroicons :: userMinus('heroicon-sm')}"></span> Suspicious Actors
-            </h5>
+            <h5 class="rv-page-title mb-3"><i class="fa-solid fa-user-secret"></i> Suspicious Actors</h5>
             <div class="d-flex flex-wrap gap-2">
                 <a th:each="actor : ${anomalyReport.topSuspiciousActors}"
                    class="btn btn-sm btn-outline-danger"
@@ -77,18 +71,18 @@
             <form method="post" th:action="@{/compliance/fraud-reports}">
                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                 <input type="hidden" name="sessionId" th:value="${anomalyReport.sessionId}">
-                <button class="btn btn-accent d-inline-flex align-items-center gap-1" type="submit">
-                    <span th:replace="~{fragments/heroicons :: documentPlus('heroicon-sm')}"></span> Save as Fraud Report
+                <button class="btn btn-accent" type="submit">
+                    <i class="fa-solid fa-floppy-disk"></i> Save as Fraud Report
                 </button>
             </form>
             <!-- Raise a security alert pre-filled with this session -->
-            <a class="btn btn-sm btn-outline-dark d-inline-flex align-items-center gap-1"
+            <a class="btn btn-sm btn-outline-dark"
                th:href="@{/compliance/alerts/new(sessionId=${anomalyReport.sessionId})}">
-                <span th:replace="~{fragments/heroicons :: bellAlert('heroicon-sm')}"></span> Raise Alert
+                <i class="fa-solid fa-bell-exclamation"></i> Raise Alert
             </a>
-            <a class="btn btn-sm btn-outline-dark d-inline-flex align-items-center gap-1"
+            <a class="btn btn-sm btn-outline-dark"
                th:href="@{/compliance/reports/{id}(id=${anomalyReport.sessionId})}">
-                <span th:replace="~{fragments/heroicons :: documentText('heroicon-sm')}"></span> Full Report
+                <i class="fa-solid fa-file-alt"></i> Full Report
             </a>
         </div>
     </div>

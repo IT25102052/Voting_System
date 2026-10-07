@@ -6,11 +6,11 @@
 <div class="rv-page" style="max-width:800px">
 
     <div class="d-flex align-items-center gap-3 mb-4">
-        <a th:href="@{/compliance/fraud-reports}" class="btn btn-sm btn-outline-dark d-inline-flex align-items-center gap-1">
-            <span th:replace="~{fragments/heroicons :: arrowLeft('heroicon-sm')}"></span> Reports
+        <a th:href="@{/compliance/fraud-reports}" class="btn btn-sm btn-outline-dark">
+            <i class="fa-solid fa-arrow-left"></i> Reports
         </a>
-        <h2 class="rv-page-title mb-0 d-flex align-items-center gap-2">
-            <span th:replace="~{fragments/heroicons :: shieldExclamation('heroicon-md')}"></span>
+        <h2 class="rv-page-title mb-0">
+            <i class="fa-solid fa-magnifying-glass-chart"></i>
             Fraud Report #<span th:text="${report.id}"></span>
         </h2>
         <span class="status-badge"
@@ -68,8 +68,8 @@
               th:action="@{/compliance/fraud-reports/{id}/advance(id=${report.id})}"
               th:if="${report.status.name() != 'RESOLVED'}">
             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-            <button class="btn btn-accent d-inline-flex align-items-center gap-1" type="submit">
-                <span th:replace="~{fragments/heroicons :: arrowRight('heroicon-sm')}"></span>
+            <button class="btn btn-accent" type="submit">
+                <i class="fa-solid fa-arrow-right"></i>
                 Advance to
                 <span th:switch="${report.status.name()}">
                     <span th:case="'DRAFT'">FILED</span>
@@ -78,9 +78,9 @@
                 </span>
             </button>
         </form>
-        <a class="btn btn-sm btn-outline-dark d-inline-flex align-items-center gap-1"
+        <a class="btn btn-sm btn-outline-dark"
            th:href="@{/compliance/anomalies(sessionId=${report.sessionId})}">
-            <span th:replace="~{fragments/heroicons :: exclamationTriangle('heroicon-sm')}"></span> Re-run Anomaly Detection
+            <i class="fa-solid fa-bug"></i> Re-run Anomaly Detection
         </a>
     </div>
 </div>

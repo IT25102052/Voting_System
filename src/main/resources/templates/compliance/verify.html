@@ -7,11 +7,11 @@
 <div class="rv-page" style="max-width:750px">
 
     <div class="d-flex align-items-center gap-3 mb-4">
-        <a th:href="@{/compliance/dashboard}" class="btn btn-sm btn-outline-dark d-inline-flex align-items-center gap-1">
-            <span th:replace="~{fragments/heroicons :: arrowLeft('heroicon-sm')}"></span> Dashboard
+        <a th:href="@{/compliance/dashboard}" class="btn btn-sm btn-outline-dark">
+            <i class="fa-solid fa-arrow-left"></i> Dashboard
         </a>
-        <h2 class="rv-page-title mb-0 d-flex align-items-center gap-2">
-            <span th:replace="~{fragments/heroicons :: shieldCheck('heroicon-md')}"></span> Vote Integrity Verification
+        <h2 class="rv-page-title mb-0">
+            <i class="fa-solid fa-check-double"></i> Vote Integrity Verification
         </h2>
     </div>
 
@@ -49,28 +49,24 @@
             <div class="col-md-4">
                 <div class="rv-card text-center">
                     <div class="rv-mono fw-bold"
-                          th:style="'font-size:2rem;' + (${integrity.rejectedVoteCount > 0} ? 'color:#ff5c72' : 'color:var(--rv-cyan)')"
-                          th:text="${integrity.rejectedVoteCount}">0</div>
+                         th:style="'font-size:2rem;' + (${integrity.rejectedVoteCount > 0} ? 'color:#ff5c72' : 'color:var(--rv-cyan)')"
+                         th:text="${integrity.rejectedVoteCount}">0</div>
                     <small class="text-muted">Rejected Votes</small>
                 </div>
             </div>
         </div>
 
-        <div class="alert alert-success d-flex align-items-center gap-2" th:if="${integrity.countsMatch}">
-            <span th:replace="~{fragments/heroicons :: checkCircle('heroicon-md text-success flex-shrink-0')}"></span>
-            <div>
-                <strong>Counts match.</strong> The Vote table and audit log are in agreement.
-                No integrity issues detected for this session.
-            </div>
+        <div class="alert alert-success" th:if="${integrity.countsMatch}">
+            <i class="fa-solid fa-circle-check"></i>
+            <strong>Counts match.</strong> The Vote table and audit log are in agreement.
+            No integrity issues detected for this session.
         </div>
-        <div class="alert alert-warning d-flex align-items-center gap-2" th:unless="${integrity.countsMatch}">
-            <span th:replace="~{fragments/heroicons :: exclamationTriangle('heroicon-md text-warning flex-shrink-0')}"></span>
-            <div>
-                <strong>Count mismatch detected!</strong>
-                Stored: <span class="rv-mono" th:text="${integrity.storedVoteCount}"></span> &nbsp;|&nbsp;
-                Audited: <span class="rv-mono" th:text="${integrity.auditedVoteCount}"></span>.
-                This may indicate a race condition or a data issue. Review the audit log immediately.
-            </div>
+        <div class="alert alert-warning" th:unless="${integrity.countsMatch}">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            <strong>Count mismatch detected!</strong>
+            Stored: <span class="rv-mono" th:text="${integrity.storedVoteCount}"></span> &nbsp;|&nbsp;
+            Audited: <span class="rv-mono" th:text="${integrity.auditedVoteCount}"></span>.
+            This may indicate a race condition or a data issue. Review the audit log immediately.
         </div>
     </div>
 
@@ -86,10 +82,10 @@
     </div>
 
     <div class="mt-3 text-end">
-        <a class="btn btn-sm btn-outline-dark d-inline-flex align-items-center gap-1"
+        <a class="btn btn-sm btn-outline-dark"
            th:if="${integrity}"
            th:href="@{/compliance/reports/{id}(id=${integrity.sessionId})}">
-            <span th:replace="~{fragments/heroicons :: documentText('heroicon-sm')}"></span> Generate Full Report
+            <i class="fa-solid fa-file-alt"></i> Generate Full Report
         </a>
     </div>
 </div>

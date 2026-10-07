@@ -37,7 +37,7 @@ public class AuditLog {
     private Long id;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 50)
+    @Column(nullable = false, columnDefinition = "VARCHAR(50)")
     private AuditEventType eventType;
 
     @Column(nullable = false, length = 500)

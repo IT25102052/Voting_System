@@ -7,11 +7,11 @@
 
     <div class="d-flex align-items-center justify-content-between mb-4">
         <div class="d-flex align-items-center gap-3">
-            <a th:href="@{/compliance/dashboard}" class="btn btn-sm btn-outline-dark d-inline-flex align-items-center gap-1">
-                <span th:replace="~{fragments/heroicons :: arrowLeft('heroicon-sm')}"></span> Dashboard
+            <a th:href="@{/compliance/dashboard}" class="btn btn-sm btn-outline-dark">
+                <i class="fa-solid fa-arrow-left"></i> Dashboard
             </a>
-            <h2 class="rv-page-title mb-0 d-flex align-items-center gap-2">
-                <span th:replace="~{fragments/heroicons :: shieldExclamation('heroicon-md')}"></span> Fraud Reports
+            <h2 class="rv-page-title mb-0">
+                <i class="fa-solid fa-magnifying-glass-chart"></i> Fraud Reports
             </h2>
         </div>
     </div>
@@ -19,7 +19,7 @@
     <div class="alert alert-info" th:if="${flash}" th:text="${flash}"></div>
 
     <div class="rv-card text-center py-5" th:if="${#lists.isEmpty(reports)}">
-        <span th:replace="~{fragments/heroicons :: magnifyingGlass('heroicon-xl mb-3')}" style="color:#00e5ff;opacity:.4;display:inline-block;"></span>
+        <i class="fa-solid fa-magnifying-glass fa-2x mb-3" style="color:#00e5ff;opacity:.4"></i>
         <p class="text-muted mb-0">No fraud reports have been filed yet.</p>
         <p class="text-muted small mt-1">
             Run Anomaly Detection on a session, then click "Save as Fraud Report".
@@ -48,9 +48,8 @@
                 <td class="small text-muted" th:text="${r.createdDate}"></td>
                 <td>
                     <a class="btn btn-sm btn-outline-dark"
-                       th:href="@{/compliance/fraud-reports/{id}(id=${r.id})}"
-                       title="View Fraud Report">
-                        <span th:replace="~{fragments/heroicons :: eye('heroicon-sm')}"></span>
+                       th:href="@{/compliance/fraud-reports/{id}(id=${r.id})}">
+                        <i class="fa-solid fa-eye"></i>
                     </a>
                 </td>
             </tr>

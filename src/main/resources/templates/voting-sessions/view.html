@@ -1,70 +1,326 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
+
 <head th:replace="~{fragments/layout :: head('Voting Session')}"></head>
+
 <body>
+
 <nav th:replace="~{fragments/layout :: navbar}"></nav>
 
 <div class="rv-page" style="max-width:700px">
-    <a class="btn btn-sm btn-outline-secondary mb-3" th:href="@{/admin/voting-sessions}">Back to Sessions</a>
 
-    <div class="alert alert-success" th:if="${successMessage}" th:text="${successMessage}"></div>
-    <div class="alert alert-danger" th:if="${errorMessage}" th:text="${errorMessage}"></div>
+    <!-- Back -->
+    <a class="btn btn-sm btn-outline-secondary mb-3"
+       th:href="@{/admin/voting-sessions}">
+        &larr; Back to Sessions
+    </a>
 
-    <div class="alert alert-danger" th:if="${votingSession.episode == null}">
-        This session isn't linked to an episode (it may have been deleted). You can still open/close it below,
+
+    <!-- Flash Messages -->
+    <div class="alert alert-success"
+         th:if="${successMessage}"
+         th:text="${successMessage}">
+    </div>
+
+    <div class="alert alert-danger"
+         th:if="${errorMessage}"
+         th:text="${errorMessage}">
+    </div>
+
+
+    <!-- Missing Episode Warning -->
+    <div class="alert alert-danger"
+         th:if="${votingSession.episode == null}">
+        This session isn't linked to an episode. You can still open/close it below,
         but consider deleting it and creating a new session instead.
     </div>
 
+
+    <!-- Session Information + Actions -->
     <div class="rv-card mb-4">
+
         <div class="d-flex justify-content-between align-items-start">
+
             <div>
-                <h4 class="rv-page-title mb-1" th:if="${votingSession.episode != null}"
-                    th:text="${votingSession.episode.season.show.name} + ' - Ep. ' + ${votingSession.episode.episodeNumber} + ': ' + ${votingSession.episode.title}">
+
+                <!-- Show / Episode -->
+                <h4 class="rv-page-title mb-1"
+                    th:if="${votingSession.episode != null}"
+                    th:text="${votingSession.episode.season.show.name
+                              + ' - Ep. '
+                              + votingSession.episode.episodeNumber
+                              + ': '
+                              + votingSession.episode.title}">
                     Show / Episode
                 </h4>
-                <h4 class="rv-page-title mb-1 text-muted" th:if="${votingSession.episode == null}">
+
+                <h4 class="rv-page-title mb-1 text-muted"
+                    th:if="${votingSession.episode == null}">
                     Unknown show / episode
                 </h4>
-                <span class="status-badge" th:if="${votingSession.status != null}" th:classappend="'status-' + ${votingSession.status}" th:text="${votingSession.status}"></span>
-                <span class="status-badge status-UNKNOWN" th:if="${votingSession.status == null}">UNKNOWN</span>
+
+
+                <!-- Status -->
+                <span class="status-badge"
+                      th:if="${votingSession.status != null}"
+                      th:classappend="${'status-' + votingSession.status}"
+                      th:text="${votingSession.status}">
+                    STATUS
+                </span>
+
+                <span class="status-badge status-UNKNOWN"
+                      th:if="${votingSession.status == null}">
+                    UNKNOWN
+                </span>
+
+
+                <!-- Time -->
                 <p class="text-muted mt-2 mb-0">
-                    <span th:text="${votingSession.startTime}"></span> to <span th:text="${votingSession.endTime}"></span>
+
+                    <span th:text="${votingSession.startTime}">
+                        Start Time
+                    </span>
+
+                    &nbsp;to&nbsp;
+
+                    <span th:text="${votingSession.endTime}">
+                        End Time
+                    </span>
+
                 </p>
+
             </div>
-            <div class="d-flex gap-2">
-                <form th:if="${votingSession.status == null or (votingSession.status.name() != 'CLOSED' and votingSession.status.name() != 'OPEN')}"
-                      method="post" th:action="@{'/admin/voting-sessions/' + ${votingSession.id} + '/open'}">
-                    <button class="btn btn-sm btn-accent" type="submit">
-                        <i class="fa-solid fa-play"></i> Open Voting
+
+
+            <!-- ACTION BUTTONS -->
+            <div class="d-flex gap-2 flex-wrap justify-content-end">
+
+
+                <!-- ========================= -->
+                <!-- SCHEDULED SESSION -->
+                <!-- ========================= -->
+
+                <!-- Edit -->
+                <a th:if="${votingSession.status != null
+                           and votingSession.status.name() == 'SCHEDULED'
+                           and votingSession.episode != null}"
+                   class="btn btn-sm btn-outline-secondary"
+                   th:href="@{'/admin/voting-sessions/' + ${votingSession.id} + '/edit'}">
+
+                    <i class="fa-solid fa-pen"></i>
+                    Edit
+
+                </a>
+
+
+                <!-- Open Voting -->
+                <form th:if="${votingSession.status != null
+                              and votingSession.status.name() == 'SCHEDULED'}"
+                      method="post"
+                      th:action="@{'/admin/voting-sessions/' + ${votingSession.id} + '/open'}">
+
+                    <button class="btn btn-sm btn-accent"
+                            type="submit">
+
+                        <i class="fa-solid fa-play"></i>
+                        Open Voting
+
                     </button>
+
                 </form>
-                <form th:if="${votingSession.status != null and votingSession.status.name() != 'CLOSED'}"
-                      method="post" th:action="@{'/admin/voting-sessions/' + ${votingSession.id} + '/close'}"
+
+
+                <!-- Delete Scheduled -->
+                <form th:if="${votingSession.status != null
+                              and votingSession.status.name() == 'SCHEDULED'}"
+                      method="post"
+                      th:action="@{'/admin/voting-sessions/' + ${votingSession.id} + '/delete'}"
+                      onsubmit="return confirm('Delete this voting session? This cannot be undone.');">
+
+                    <button class="btn btn-sm btn-outline-danger"
+                            type="submit">
+
+                        <i class="fa-solid fa-trash"></i>
+                        Delete
+
+                    </button>
+
+                </form>
+
+
+                <!-- ========================= -->
+                <!-- OPEN SESSION -->
+                <!-- ========================= -->
+
+                <!-- Close Voting -->
+                <form th:if="${votingSession.status != null
+                              and votingSession.status.name() == 'OPEN'}"
+                      method="post"
+                      th:action="@{'/admin/voting-sessions/' + ${votingSession.id} + '/close'}"
                       onsubmit="return confirm('Close voting? This cannot be undone.');">
-                    <button class="btn btn-sm btn-outline-danger" type="submit">
-                        <i class="fa-solid fa-stop"></i> Close Voting
+
+                    <button class="btn btn-sm btn-outline-danger"
+                            type="submit">
+
+                        <i class="fa-solid fa-stop"></i>
+                        Close Voting
+
                     </button>
+
                 </form>
-                <form th:if="${votingSession.episode == null}"
-                      method="post" th:action="@{'/admin/voting-sessions/' + ${votingSession.id} + '/delete'}"
-                      onsubmit="return confirm('Delete this broken session? This cannot be undone.');">
-                    <button class="btn btn-sm btn-outline-secondary" type="submit">
-                        <i class="fa-solid fa-trash"></i> Delete
+
+
+                <!-- ========================= -->
+                <!-- CLOSED SESSION -->
+                <!-- ========================= -->
+
+                <!-- Delete Closed -->
+                <form th:if="${votingSession.status != null
+                              and votingSession.status.name() == 'CLOSED'}"
+                      method="post"
+                      th:action="@{'/admin/voting-sessions/' + ${votingSession.id} + '/delete'}"
+                      onsubmit="return confirm('Delete this voting session? This cannot be undone.');">
+
+                    <button class="btn btn-sm btn-outline-danger"
+                            type="submit">
+
+                        <i class="fa-solid fa-trash"></i>
+                        Delete
+
                     </button>
+
                 </form>
+
             </div>
+
         </div>
+
     </div>
+
+
+    <!-- ========================= -->
+    <!-- EXTEND VOTING WINDOW -->
+    <!-- Only OPEN sessions -->
+    <!-- ========================= -->
+
+    <div class="rv-card mb-4"
+         th:if="${votingSession.status != null
+                 and votingSession.status.name() == 'OPEN'}">
+
+        <h6 class="rv-page-title mb-2">
+            <i class="fa-solid fa-clock"></i>
+            Extend Voting Window
+        </h6>
+
+        <form method="post"
+              class="d-flex gap-2 align-items-end flex-wrap"
+              th:action="@{'/admin/voting-sessions/' + ${votingSession.id} + '/extend'}">
+
+            <div>
+
+                <label class="form-label mb-1">
+                    New Closing Time
+                </label>
+
+                <input type="datetime-local"
+                       name="newEndTime"
+                       class="form-control"
+                       required>
+
+            </div>
+
+            <button class="btn btn-sm btn-accent"
+                    type="submit">
+
+                <i class="fa-solid fa-clock"></i>
+                Extend
+
+            </button>
+
+        </form>
+
+        <small class="text-muted">
+
+            Currently closes:
+            <span th:text="${votingSession.endTime}">
+                End Time
+            </span>
+
+        </small>
+
+    </div>
+
+
+    <!-- ========================= -->
+    <!-- CONTESTANTS -->
+    <!-- ========================= -->
 
     <div class="rv-card mb-4">
-        <h6 class="rv-page-title mb-2">Contestants in this session</h6>
-        <span class="badge bg-light text-dark border me-1 mb-1" th:each="c : ${votingSession.contestants}" th:text="${c.fullName}"></span>
+
+        <div class="d-flex justify-content-between align-items-center mb-2">
+
+            <h6 class="rv-page-title mb-0">
+                <i class="fa-solid fa-users"></i>
+                Contestants in this Session
+            </h6>
+
+            <span class="badge bg-light text-dark border"
+                  th:text="${#lists.size(votingSession.contestants) + ' contestant(s)'}">
+                0 contestant(s)
+            </span>
+
+        </div>
+
+
+        <!-- No contestants -->
+        <div class="text-center py-3"
+             th:if="${#lists.isEmpty(votingSession.contestants)}">
+
+            <i class="fa-solid fa-users-slash fa-2x mb-2"
+               style="color:#4a4d58">
+            </i>
+
+            <p class="text-muted mb-0">
+                No contestants assigned to this session.
+            </p>
+
+        </div>
+
+
+        <!-- Contestant list -->
+        <div th:unless="${#lists.isEmpty(votingSession.contestants)}">
+
+            <span class="badge bg-light text-dark border me-1 mb-1"
+                  th:each="c : ${votingSession.contestants}"
+                  th:text="${c.fullName}">
+                Contestant
+            </span>
+
+        </div>
+
     </div>
 
+
+    <!-- ========================= -->
+    <!-- LIVE RESULTS -->
+    <!-- ========================= -->
+
     <div class="rv-card">
-        <h5 class="rv-page-title mb-3"><i class="fa-solid fa-chart-simple"></i> Live Results</h5>
+
+        <h5 class="rv-page-title mb-3">
+
+            <i class="fa-solid fa-chart-simple"></i>
+            Live Results
+
+        </h5>
+
         <div th:replace="~{voting-sessions/_results :: results}"></div>
+
     </div>
+
+
 </div>
+
 </body>
 </html>
+
