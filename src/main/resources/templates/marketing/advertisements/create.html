@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('New Advertisement')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+<div class="rv-page" style="max-width:780px">
+    <h2 class="rv-page-title mb-2"><i class="fa-solid fa-plus-circle"></i> Create Advertisement</h2>
+    <p class="text-muted mb-4">
+        Campaign: <strong th:text="${campaign.name}"></strong>
+        <span class="status-badge rv-mono ms-1" th:classappend="'status-' + ${campaign.status}" th:text="${campaign.status}"></span>
+    </p>
+
+    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show"><span th:text="${error}"></span><button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+
+    <div class="rv-card">
+        <form th:action="@{/marketing/campaigns/{id}/advertisements/create(id=${campaign.id})}" th:object="${advertisement}" method="post">
+            <div class="mb-3">
+                <label class="form-label rv-mono small">TITLE / HEADLINE *</label>
+                <input type="text" class="form-control" th:field="*{title}" required placeholder="e.g. Official Energy Drink of the Grand Finale!">
+            </div>
+            <div class="mb-3">
+                <label class="form-label rv-mono small">CONTENT / AD COPY *</label>
+                <textarea class="form-control" th:field="*{content}" rows="4" required placeholder="Describe the offer, sponsor message, or viewer promotion…"></textarea>
+            </div>
+            <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                    <label class="form-label rv-mono small">BANNER / IMAGE URL (Optional)</label>
+                    <input type="url" class="form-control" th:field="*{imageUrl}" placeholder="https://example.com/sponsor-banner.jpg">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label rv-mono small">SPONSOR WEBSITE / CTA LINK (Optional)</label>
+                    <input type="url" class="form-control" th:field="*{targetUrl}" placeholder="https://sponsorbrand.com/deal">
+                </div>
+            </div>
+
+            <!-- Target Voting Sessions Selection -->
+            <div class="mb-4 pt-3" style="border-top:1px solid var(--rv-border)">
+                <label class="form-label rv-mono small mb-1"><i class="fa-solid fa-tv me-1"></i> TARGET VOTING SESSIONS</label>
+                <div class="text-muted small mb-2">Select which voting session(s) this advertisement should appear in:</div>
+
+                <div class="table-responsive" style="max-height:220px; overflow-y:auto; border:1px solid var(--rv-border); border-radius:8px;">
+                    <table class="table table-sm table-hover mb-0">
+                        <thead style="position:sticky; top:0; background:var(--rv-card-bg); z-index:1;">
+                        <tr class="rv-mono" style="font-size:.72rem;color:var(--rv-text-muted)">
+                            <th style="width:36px"></th>
+                            <th>#</th>
+                            <th>SHOW / EPISODE</th>
+                            <th>STATUS</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="s : ${allSessions}">
+                            <td>
+                                <input type="checkbox" class="form-check-input" name="sessionIds" th:value="${s.id}">
+                            </td>
+                            <td class="rv-mono" th:text="${s.id}"></td>
+                            <td class="small">
+                                <span th:text="${s.episode.season.show.name}"></span>
+                                S<span th:text="${s.episode.season.seasonNumber}"></span>
+                                E<span th:text="${s.episode.episodeNumber}"></span>:
+                                <span th:text="${s.episode.title}"></span>
+                            </td>
+                            <td><span class="status-badge rv-mono" th:classappend="'status-' + ${s.status}" th:text="${s.status}"></span></td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(allSessions)}">
+                            <td colspan="4" class="text-center text-muted py-3">No voting sessions created yet. You can assign sessions later.</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-accent"><i class="fa-solid fa-save me-1"></i> Create Advertisement</button>
+                <a th:href="@{/marketing/campaigns/{id}(id=${campaign.id})}" class="btn btn-outline-dark">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

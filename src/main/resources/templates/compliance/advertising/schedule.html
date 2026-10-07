@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Schedule Advertisement')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+<div class="rv-page" style="max-width:850px">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <h2 class="rv-page-title mb-0 d-flex align-items-center gap-2">
+            <span th:replace="~{fragments/heroicons :: calendarDays('heroicon-md')}"></span> Schedule Advertisement
+        </h2>
+        <a th:href="@{/compliance/advertising/{id}(id=${advertisement.id})}" class="btn btn-sm btn-outline-dark d-inline-flex align-items-center gap-1">
+            <span th:replace="~{fragments/heroicons :: arrowLeft('heroicon-sm')}"></span> Back to Review
+        </a>
+    </div>
+
+    <div th:if="${success}" class="alert alert-success alert-dismissible fade show"><span th:text="${success}"></span><button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show"><span th:text="${error}"></span><button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+
+    <!-- Ad summary -->
+    <div class="rv-card mb-3">
+        <div class="d-flex align-items-center gap-3 mb-2">
+            <span class="status-badge rv-mono" th:classappend="'status-' + ${advertisement.status}" th:text="${advertisement.status}"></span>
+            <h5 class="mb-0" th:text="${advertisement.title}"></h5>
+        </div>
+        <div class="rv-mono small text-muted">
+            Campaign: <span th:text="${campaign.name}"></span> &nbsp;|&nbsp;
+            Created by: <span th:text="${advertisement.createdBy.fullName}"></span>
+        </div>
+    </div>
+
+    <!-- Schedule form -->
+    <div class="rv-card">
+        <form th:action="@{/compliance/advertising/{id}/schedule(id=${advertisement.id})}" method="post">
+            <h5 class="rv-page-title mb-3 d-flex align-items-center gap-2">
+                <span th:replace="~{fragments/heroicons :: clock('heroicon-sm')}"></span> Display Window
+            </h5>
+            <p class="text-muted small mb-3">
+                Set when this ad is eligible to show. Leave empty for "immediately" (start) or "no end" (end).
+                The ad must also be <strong>ACTIVE</strong> and assigned to at least one session to actually appear to viewers.
+            </p>
+
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <label class="form-label rv-mono small">DISPLAY START</label>
+                    <input type="datetime-local" class="form-control" name="displayStartTime"
+                           th:value="${advertisement.displayStartTime != null ? #temporals.format(advertisement.displayStartTime, 'yyyy-MM-dd''T''HH:mm') : ''}">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label rv-mono small">DISPLAY END</label>
+                    <input type="datetime-local" class="form-control" name="displayEndTime"
+                           th:value="${advertisement.displayEndTime != null ? #temporals.format(advertisement.displayEndTime, 'yyyy-MM-dd''T''HH:mm') : ''}">
+                </div>
+            </div>
+
+            <h5 class="rv-page-title mb-3 d-flex align-items-center gap-2">
+                <span th:replace="~{fragments/heroicons :: tv('heroicon-sm')}"></span> Assign to Voting Sessions
+            </h5>
+            <p class="text-muted small mb-3">Select which voting sessions this ad should appear in for viewers.</p>
+
+            <div class="table-responsive mb-4">
+                <table class="table table-sm mb-0">
+                    <thead>
+                    <tr class="rv-mono" style="font-size:.75rem;color:var(--rv-text-muted)">
+                        <th style="width:40px"></th>
+                        <th>SESSION</th>
+                        <th>SHOW / EPISODE</th>
+                        <th>STATUS</th>
+                        <th>TIME WINDOW</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="s : ${allSessions}">
+                        <td>
+                            <input type="checkbox" class="form-check-input" name="sessionIds" th:value="${s.id}"
+                                   th:checked="${#lists.contains(assignedIds, s.id)}">
+                        </td>
+                        <td class="rv-mono">#<span th:text="${s.id}"></span></td>
+                        <td class="small">
+                            <span th:text="${s.episode.season.show.name}"></span>
+                            S<span th:text="${s.episode.season.seasonNumber}"></span>
+                            E<span th:text="${s.episode.episodeNumber}"></span>:
+                            <span th:text="${s.episode.title}"></span>
+                        </td>
+                        <td><span class="status-badge rv-mono" th:classappend="'status-' + ${s.status}" th:text="${s.status}"></span></td>
+                        <td class="rv-mono small text-muted">
+                            <span th:text="${#temporals.format(s.startTime, 'dd MMM HH:mm')}"></span>
+                            → <span th:text="${#temporals.format(s.endTime, 'dd MMM HH:mm')}"></span>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(allSessions)}">
+                        <td colspan="5" class="text-center text-muted py-4">No voting sessions available.</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-accent d-inline-flex align-items-center gap-1">
+                    <span th:replace="~{fragments/heroicons :: check('heroicon-sm')}"></span> Save Schedule
+                </button>
+                <a th:href="@{/compliance/advertising/{id}(id=${advertisement.id})}" class="btn btn-outline-dark">Cancel</a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Previous schedule info -->
+    <div th:if="${advertisement.scheduledBy != null}" class="rv-mono small text-muted mt-3">
+        Last scheduled by <span th:text="${advertisement.scheduledBy.fullName}"></span>
+        on <span th:text="${#temporals.format(advertisement.scheduledAt, 'dd MMM yyyy HH:mm')}"></span>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

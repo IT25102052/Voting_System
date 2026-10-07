@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Compliance Dashboard')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<div class="rv-page" style="max-width:1100px">
+
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <h2 class="rv-page-title mb-0 d-flex align-items-center gap-2">
+            <span th:replace="~{fragments/heroicons :: shieldCheck('heroicon-lg text-info')}"></span>
+            <span>Compliance Officer Dashboard</span>
+        </h2>
+    </div>
+
+    <!-- Flash message (purge result) -->
+    <div class="alert alert-info" th:if="${purgeMessage}" th:text="${purgeMessage}"></div>
+
+    <!-- KPI Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4 col-xl-2">
+            <div class="rv-card text-center">
+                <div class="rv-mono fw-bold" style="color:var(--rv-cyan);font-size:2rem;" th:text="${stats.totalEvents}">0</div>
+                <small class="text-muted">Total Events</small>
+            </div>
+        </div>
+        <div class="col-md-4 col-xl-2">
+            <div class="rv-card text-center">
+                <div class="rv-mono fw-bold"
+                     th:text="${stats.flaggedEvents}"
+                     th:style="'font-size:2rem;' + (${stats.flaggedEvents > 0} ? 'color:#ff5c72' : 'color:var(--rv-cyan)')">0</div>
+                <small class="text-muted">Flagged Events</small>
+            </div>
+        </div>
+        <div class="col-md-4 col-xl-2">
+            <div class="rv-card text-center">
+                <div class="rv-mono fw-bold"
+                     th:text="${stats.suspiciousActivityCount}"
+                     th:style="'font-size:2rem;' + (${stats.suspiciousActivityCount > 0} ? 'color:#ffc857' : 'color:var(--rv-cyan)')">0</div>
+                <small class="text-muted">Suspicious Alerts</small>
+            </div>
+        </div>
+        <div class="col-md-4 col-xl-2">
+            <div class="rv-card text-center">
+                <div class="rv-mono fw-bold" style="color:var(--rv-cyan);font-size:2rem;" th:text="${stats.loginFailures}">0</div>
+                <small class="text-muted">Login Failures</small>
+            </div>
+        </div>
+        <div class="col-md-4 col-xl-2">
+            <div class="rv-card text-center">
+                <div class="rv-mono fw-bold" style="color:var(--rv-cyan);font-size:2rem;" th:text="${stats.voteRejections}">0</div>
+                <small class="text-muted">Vote Rejections</small>
+            </div>
+        </div>
+        <div class="col-md-4 col-xl-2">
+            <div class="rv-card text-center">
+                <div class="rv-mono fw-bold"
+                     th:text="${stats.flaggedLast24h}"
+                     th:style="'font-size:2rem;' + (${stats.flaggedLast24h > 0} ? 'color:#ff5c72' : 'color:var(--rv-cyan)')">0</div>
+                <small class="text-muted">Flagged (24 h)</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+
+        <!-- Quick Navigation -->
+        <div class="col-md-6">
+            <div class="rv-card h-100">
+                <h5 class="rv-page-title mb-3 d-flex align-items-center gap-2">
+                    <span th:replace="~{fragments/heroicons :: adjustments('heroicon text-info')}"></span>
+                    <span>Quick Navigation</span>
+                </h5>
+                <div class="d-grid gap-2">
+                    <a class="btn btn-outline-dark d-flex align-items-center justify-content-start gap-2" th:href="@{/compliance/audit-logs}">
+                        <span th:replace="~{fragments/heroicons :: clipboardList('heroicon text-secondary')}"></span>
+                        <span>Audit Log &mdash; Full List</span>
+                    </a>
+                    <a class="btn btn-outline-dark d-flex align-items-center justify-content-start gap-2" th:href="@{/compliance/audit-logs(flaggedOnly=true)}">
+                        <span th:replace="~{fragments/heroicons :: exclamationTriangle('heroicon text-danger')}"></span>
+                        <span>Audit Log &mdash; Flagged Only</span>
+                    </a>
+                    <a class="btn btn-outline-dark d-flex align-items-center justify-content-start gap-2" th:href="@{/compliance/activity}">
+                        <span th:replace="~{fragments/heroicons :: chartBar('heroicon text-primary')}"></span>
+                        <span>Voting Activity</span>
+                    </a>
+                    <a class="btn btn-outline-dark d-flex align-items-center justify-content-start gap-2" th:href="@{/compliance/anomalies}">
+                        <span th:replace="~{fragments/heroicons :: shieldExclamation('heroicon text-warning')}"></span>
+                        <span>Anomaly Detection</span>
+                    </a>
+                    <a class="btn btn-accent d-flex align-items-center justify-content-start gap-2" th:href="@{/compliance/audit-logs/export}">
+                        <span th:replace="~{fragments/heroicons :: documentArrowDown('heroicon')}"></span>
+                        <span>Export Audit Log (CSV)</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Top Suspicious Actors -->
+        <div class="col-md-6">
+            <div class="rv-card h-100">
+                <h5 class="rv-page-title mb-3 d-flex align-items-center gap-2">
+                    <span th:replace="~{fragments/heroicons :: userMinus('heroicon text-danger')}"></span>
+                    <span>Top Suspicious Actors</span>
+                </h5>
+                <div class="text-muted" th:if="${#lists.isEmpty(topActors)}">No flagged actors yet.</div>
+                <table class="table table-sm mb-0" th:unless="${#lists.isEmpty(topActors)}">
+                    <thead><tr><th>Actor</th><th class="text-end">Flagged Events</th></tr></thead>
+                    <tbody>
+                    <tr th:each="a : ${topActors}">
+                        <td class="rv-mono" th:text="${a.actorEmail}"></td>
+                        <td class="text-end">
+                            <span class="status-badge status-ELIMINATED rv-mono" th:text="${a.flaggedCount}"></span>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Voting Sessions — run integrity check or view report -->
+    <div class="rv-card">
+        <h5 class="rv-page-title mb-3 d-flex align-items-center gap-2">
+            <span th:replace="~{fragments/heroicons :: signal('heroicon text-info')}"></span>
+            <span>Session Compliance Checks</span>
+        </h5>
+        <div class="text-muted" th:if="${#lists.isEmpty(sessions)}">No voting sessions exist yet.</div>
+        <div class="table-responsive" th:unless="${#lists.isEmpty(sessions)}">
+            <table class="table mb-0">
+                <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Episode</th>
+                    <th>Status</th>
+                    <th>Window</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="s : ${sessions}">
+                    <td class="rv-mono" th:text="${s.id}"></td>
+                    <td th:text="${s.episode.id}"></td>
+                    <td>
+                        <span class="status-badge"
+                              th:classappend="${s.status.name() == 'OPEN'} ? 'status-ACTIVE' : (${s.status.name() == 'CLOSED'} ? 'status-ARCHIVED' : 'status-SCHEDULED')"
+                              th:text="${s.status}"></span>
+                    </td>
+                    <td class="rv-mono small"
+                        th:text="${#temporals.format(s.startTime,'dd MMM HH:mm')} + ' → ' + ${#temporals.format(s.endTime,'HH:mm')}"></td>
+                    <td class="text-end">
+                        <a class="btn btn-sm btn-outline-dark me-1 d-inline-flex align-items-center gap-1"
+                           th:href="@{/compliance/verify/{id}(id=${s.id})}">
+                            <span th:replace="~{fragments/heroicons :: checkBadge('heroicon-sm text-success')}"></span>
+                            <span>Verify</span>
+                        </a>
+                        <a class="btn btn-sm btn-outline-dark d-inline-flex align-items-center gap-1"
+                           th:href="@{/compliance/reports/{id}(id=${s.id})}">
+                            <span th:replace="~{fragments/heroicons :: documentText('heroicon-sm text-info')}"></span>
+                            <span>Report</span>
+                        </a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Admin-only purge panel -->
+    <div class="rv-card mt-4" sec:authorize="hasRole('ADMINISTRATOR')">
+        <h5 class="rv-page-title mb-3 d-flex align-items-center gap-2">
+            <span th:replace="~{fragments/heroicons :: trash('heroicon text-danger')}"></span>
+            <span>Purge Old Audit Entries</span>
+        </h5>
+        <p class="text-muted small mb-3">
+            Removes non-vote audit entries older than the specified number of days.
+            Vote-related entries (VOTE_CAST, VOTE_REJECTED) are <strong>never</strong> deleted.
+        </p>
+        <form method="post" th:action="@{/compliance/audit-logs/purge}" class="row g-2 align-items-end">
+            <div class="col-auto">
+                <label class="form-label mb-1">Days old (&ge;)</label>
+                <input type="number" name="daysOld" min="30" value="365" class="form-control" style="width:120px">
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-outline-danger d-inline-flex align-items-center gap-1"
+                        onclick="return confirm('Delete non-vote audit entries older than specified days?')">
+                    <span th:replace="~{fragments/heroicons :: trash('heroicon-sm')}"></span>
+                    <span>Purge</span>
+                </button>
+            </div>
+        </form>
+    </div>
+
+</div>
+</body>
+</html>

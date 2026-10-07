@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Audit Logs')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<div class="rv-page" style="max-width:1100px">
+
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div class="d-flex align-items-center gap-3">
+            <a th:href="@{/compliance/dashboard}" class="btn btn-sm btn-outline-dark d-inline-flex align-items-center gap-1">
+                <span th:replace="~{fragments/heroicons :: arrowLeft('heroicon-sm')}"></span> Dashboard
+            </a>
+            <h2 class="rv-page-title mb-0 d-flex align-items-center gap-2">
+                <span th:replace="~{fragments/heroicons :: clipboardList('heroicon-md')}"></span> Audit &amp; Compliance
+            </h2>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <span class="status-badge status-ELIMINATED d-inline-flex align-items-center gap-1" th:if="${flaggedCount > 0}">
+                <span th:replace="~{fragments/heroicons :: exclamationTriangle('heroicon-sm')}"></span> <span th:text="${flaggedCount}"></span> flagged
+            </span>
+            <a class="btn btn-sm btn-outline-dark d-inline-flex align-items-center gap-1"
+               th:href="@{/compliance/audit-logs/export(keyword=${keyword},flaggedOnly=${flaggedOnly})}">
+                <span th:replace="~{fragments/heroicons :: documentArrowDown('heroicon-sm')}"></span> Export CSV
+            </a>
+        </div>
+    </div>
+
+    <!-- Flash message from purge -->
+    <div class="alert alert-info" th:if="${purgeMessage}" th:text="${purgeMessage}"></div>
+
+    <form class="rv-card mb-4 row g-2 align-items-end" method="get" th:action="@{/compliance/audit-logs}">
+        <div class="col-md-3">
+            <label class="form-label mb-1 small text-muted">Actor email contains</label>
+            <input type="text" name="keyword" class="form-control flowbite-input" placeholder="e.g. user@domain.com" th:value="${keyword}">
+        </div>
+        <div class="col-md-3">
+            <label class="form-label mb-1 small text-muted">Event Type</label>
+            <select name="eventType" class="form-select flowbite-select">
+                <option value="">All Types</option>
+                <option th:each="et : ${eventTypes}" th:value="${et}" th:text="${et}"
+                        th:selected="${eventType != null and eventType == et}"></option>
+            </select>
+        </div>
+        <div class="col-md-3 form-check mb-2">
+            <input class="form-check-input" type="checkbox" name="flaggedOnly" value="true" id="flaggedOnly"
+                   th:checked="${flaggedOnly}">
+            <label class="form-check-label small" for="flaggedOnly">Flagged only</label>
+        </div>
+        <div class="col-md-3">
+            <button class="btn btn-outline-dark w-100 d-inline-flex align-items-center justify-content-center gap-1" type="submit">
+                <span th:replace="~{fragments/heroicons :: magnifyingGlass('heroicon-sm')}"></span> Apply Filter
+            </button>
+        </div>
+    </form>
+
+    <div class="rv-card text-center py-5" th:if="${logPage.totalElements == 0}">
+        <span th:replace="~{fragments/heroicons :: inbox('heroicon-xl text-muted mb-2 d-inline-block')}"></span>
+        <p class="text-muted mb-0">No audit events match this filter.</p>
+    </div>
+
+    <div class="rv-card p-0 overflow-hidden" th:unless="${logPage.totalElements == 0}">
+        <table class="flowbite-table table table-hover mb-0">
+            <thead>
+            <tr>
+                <th style="width:180px;">Time</th>
+                <th style="width:160px;">Event</th>
+                <th>Actor</th>
+                <th>Description</th>
+                <th style="width:60px;" class="text-end">Action</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="log : ${logPage.content}" th:classappend="${log.flagged} ? 'table-danger'">
+                <td class="text-nowrap small rv-mono text-muted" th:text="${log.createdDate}"></td>
+                <td>
+                    <span class="flowbite-badge"
+                          th:classappend="${log.eventType.name() == 'VOTE_CAST' or log.eventType.name() == 'LOGIN_SUCCESS' or log.eventType.name() == 'SESSION_OPENED'} ? 'flowbite-badge-success' : (${log.eventType.name() == 'SUSPICIOUS_ACTIVITY' or log.eventType.name() == 'VOTE_REJECTED'} ? 'flowbite-badge-danger' : 'flowbite-badge-purple')">
+                        <span class="flowbite-badge-dot"></span>
+                        <span th:text="${log.eventType}"></span>
+                    </span>
+                </td>
+                <td class="rv-mono small" style="color:var(--rv-cyan);" th:text="${log.actorEmail}"></td>
+                <td class="small" th:text="${log.description}"></td>
+                <td class="text-end">
+                    <a class="btn btn-sm btn-outline-dark py-0 px-2"
+                       th:href="@{/compliance/audit-logs/{id}(id=${log.id})}"
+                       title="View Audit Detail">
+                        <span th:replace="~{fragments/heroicons :: eye('heroicon-sm')}"></span>
+                    </a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <nav class="mt-4" th:if="${logPage.totalPages > 1}">
+        <ul class="pagination justify-content-center">
+            <li class="page-item" th:each="i : ${#numbers.sequence(0, logPage.totalPages - 1)}"
+                th:classappend="${i == logPage.number} ? 'active'">
+                <a class="page-link"
+                   th:href="@{/compliance/audit-logs(page=${i}, keyword=${keyword}, eventType=${eventType}, flaggedOnly=${flaggedOnly})}"
+                   th:text="${i + 1}"></a>
+            </li>
+        </ul>
+    </nav>
+
+</div>
+</body>
+</html>
+

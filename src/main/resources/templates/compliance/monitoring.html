@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Live Compliance Monitoring')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<!-- Apache ECharts loaded via layout.html head -->
+
+<div class="rv-page" style="max-width:1400px">
+
+    <!-- ── PAGE HEADER ──────────────────────────────────────────────────── -->
+    <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+        <div>
+            <h2 class="rv-page-title mb-0 d-flex align-items-center gap-2">
+                <span th:replace="~{fragments/heroicons :: signal('heroicon-lg text-success')}"></span>
+                <span>Live Compliance Monitoring</span>
+            </h2>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <span class="on-air-strip rv-mono" id="liveIndicator">
+                <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--rv-pink);margin-right:6px;animation:rv-pulse 1.2s ease-in-out infinite;"></span>
+                MONITORING ACTIVE
+            </span>
+            <a th:href="@{/compliance/dashboard}" class="btn btn-sm btn-outline-dark d-inline-flex align-items-center gap-1">
+                <span th:replace="~{fragments/heroicons :: arrowLeft('heroicon-sm')}"></span>
+                <span>Dashboard</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- ── SESSION SELECTOR ─────────────────────────────────────────────── -->
+    <div class="rv-card mb-3">
+        <form method="get" th:action="@{/compliance/monitoring}" class="row align-items-end g-2">
+            <div class="col-md-8 col-lg-6">
+                <label class="form-label rv-mono mb-1" style="font-size:.75rem;color:var(--rv-cyan)">
+                    VOTING SESSION
+                </label>
+                <select name="sessionId" class="form-select rv-select" id="sessionSelect" onchange="this.form.submit()">
+                    <th:block th:each="s : ${sessions}">
+                        <option th:value="${s.id}"
+                                th:selected="${selectedSession != null and selectedSession.id == s.id}"
+                                th:text="${s.description + ' — ' + s.status}"></option>
+                    </th:block>
+                </select>
+            </div>
+            <div class="col-auto" th:if="${selectedSession != null}">
+                <div class="rv-mono small" style="color:var(--rv-text-muted)">
+                    <span th:class="${'status-badge status-' + selectedSession.status}"
+                          th:text="${selectedSession.status}"></span>
+                    &nbsp;
+                    <span th:text="${#temporals.format(selectedSession.startTime,'HH:mm')}"></span>
+                    &nbsp;→&nbsp;
+                    <span th:text="${#temporals.format(selectedSession.endTime,'HH:mm')}"></span>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- ── NO SESSION STATE ─────────────────────────────────────────────── -->
+    <div th:if="${selectedSession == null}" class="rv-card text-center py-5">
+        <span th:replace="~{fragments/heroicons :: shieldCheck('heroicon-xl text-muted mb-3 d-inline-block')}"></span>
+        <p class="text-muted">No voting session selected. Please create a session first.</p>
+        <a th:href="@{/admin/voting-sessions}" class="btn btn-accent d-inline-flex align-items-center gap-1" sec:authorize="hasRole('ADMINISTRATOR')">
+            <span th:replace="~{fragments/heroicons :: plus('heroicon-sm')}"></span>
+            <span>Create Session</span>
+        </a>
+    </div>
+
+    <!-- ── MAIN DASHBOARD (session selected) ────────────────────────────── -->
+    <div th:if="${selectedSession != null}">
+
+        <!-- ── CHARTS ROW ──────────────────────────────────────────────── -->
+        <div class="row g-3 mb-3">
+            <!-- Chart 1: Active Users -->
+            <div class="col-xl-6">
+                <div class="rv-card h-100">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <h6 class="rv-page-title mb-0 d-flex align-items-center gap-2">
+                            <span th:replace="~{fragments/heroicons :: userGroup('heroicon text-info')}"></span>
+                            <span>Active / Participating Users</span>
+                        </h6>
+                        <span class="rv-mono small" style="color:var(--rv-text-muted)">Voters per 5-min interval</span>
+                    </div>
+                    <div id="userCountChart" style="height:260px"></div>
+                    <div id="userCountEmpty" class="text-center text-muted py-3" style="display:none">
+                        <span th:replace="~{fragments/heroicons :: chartBar('heroicon me-1 text-muted')}"></span> No voting activity yet for this session.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chart 2: Votes by Contestant -->
+            <div class="col-xl-6">
+                <div class="rv-card h-100">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <h6 class="rv-page-title mb-0 d-flex align-items-center gap-2">
+                            <span th:replace="~{fragments/heroicons :: chartBar('heroicon text-cyan')}"></span>
+                            <span>Votes by Contestant</span>
+                        </h6>
+                        <span class="rv-mono small" style="color:var(--rv-text-muted)">Cumulative per 5-min</span>
+                    </div>
+                    <div id="voteTrendChart" style="height:260px"></div>
+                    <div id="voteTrendEmpty" class="text-center text-muted py-3" style="display:none">
+                        <span th:replace="~{fragments/heroicons :: chartBar('heroicon me-1 text-muted')}"></span> No votes cast yet for this session.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── LIVE USER ACTIVITY TABLE ───────────────────────────────── -->
+        <div class="rv-card">
+            <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+                <h6 class="rv-page-title mb-0 d-flex align-items-center gap-2">
+                    <span th:replace="~{fragments/heroicons :: clipboardList('heroicon text-secondary')}"></span>
+                    <span>Live User Activity</span>
+                </h6>
+                <div class="d-flex gap-2 align-items-center flex-wrap">
+                    <span class="rv-mono small" id="feedStatus" style="color:var(--rv-text-muted)">Refreshing…</span>
+                    <button class="btn btn-sm btn-outline-dark d-inline-flex align-items-center gap-1" onclick="refreshAll()">
+                        <span th:replace="~{fragments/heroicons :: arrowPath('heroicon-sm')}"></span>
+                        <span>Refresh</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="row g-2 mb-3">
+                <div class="col-md-4">
+                    <input type="text" id="filterKeyword" class="form-control form-control-sm rv-mono"
+                           placeholder="Search by email…" oninput="debounceRefreshFeed()">
+                </div>
+                <div class="col-md-3">
+                    <select id="filterEventType" class="form-select form-select-sm" onchange="refreshFeed()">
+                        <option value="">All Activities</option>
+                        <option value="VOTE_CAST">Vote Cast</option>
+                        <option value="VOTE_REJECTED">Vote Rejected</option>
+                        <option value="LOGIN_SUCCESS">Login</option>
+                        <option value="LOGIN_FAILURE">Login Failure</option>
+                        <option value="SUSPICIOUS_ACTIVITY">Suspicious Activity</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select id="filterTimeRange" class="form-select form-select-sm" onchange="refreshFeed()">
+                        <option value="15">Last 15 minutes</option>
+                        <option value="30">Last 30 minutes</option>
+                        <option value="60" selected>Last 60 minutes</option>
+                        <option value="180">Last 3 hours</option>
+                        <option value="0">Entire session</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Activity Table -->
+            <div class="table-responsive">
+                <table class="table table-sm mb-0" id="activityTable">
+                    <thead>
+                    <tr class="rv-mono" style="font-size:.75rem;color:var(--rv-text-muted)">
+                        <th>TIME</th>
+                        <th>USER</th>
+                        <th>ACTIVITY</th>
+                        <th>DESCRIPTION</th>
+                        <th>IP</th>
+                        <th>STATUS</th>
+                        <th>RISK</th>
+                        <th>ACTION</th>
+                    </tr>
+                    </thead>
+                    <tbody id="activityBody">
+                    <tr>
+                        <td colspan="8" class="text-center text-muted py-4">
+                            <span class="spinner-border spinner-border-sm me-2"></span>Loading…
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <div class="d-flex align-items-center justify-content-between mt-2">
+                <small class="rv-mono" id="feedCount" style="color:var(--rv-text-muted)"></small>
+                <div class="d-flex gap-1">
+                    <button class="btn btn-sm btn-outline-dark d-inline-flex align-items-center" id="btnPrev" onclick="changePage(-1)" disabled>
+                        <span th:replace="~{fragments/heroicons :: arrowLeft('heroicon-sm')}"></span>
+                    </button>
+                    <span class="rv-mono small px-2 align-self-center" id="pageLabel">1</span>
+                    <button class="btn btn-sm btn-outline-dark d-inline-flex align-items-center" id="btnNext" onclick="changePage(1)" disabled>
+                        <span th:replace="~{fragments/heroicons :: arrowRight('heroicon-sm')}"></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div><!-- /session selected -->
+</div><!-- /rv-page -->
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     USER DETAILS DRAWER (Bootstrap Offcanvas)
+════════════════════════════════════════════════════════════════════════ -->
+<div class="offcanvas offcanvas-end" tabindex="-1" id="userDrawer" style="width:420px;background:var(--rv-navy-2);border-left:1px solid var(--rv-border)">
+    <div class="offcanvas-header" style="border-bottom:1px solid var(--rv-border)">
+        <h5 class="offcanvas-title rv-page-title d-flex align-items-center gap-2">
+            <span th:replace="~{fragments/heroicons :: shieldCheck('heroicon text-info')}"></span>
+            <span>User Details</span>
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button>
+    </div>
+    <div class="offcanvas-body" id="userDrawerBody">
+        <div class="text-center text-muted py-5">
+            <span class="spinner-border spinner-border-sm"></span> Loading profile…
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     FLAG USER MODAL
+════════════════════════════════════════════════════════════════════════ -->
+<div class="modal fade" id="flagModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content" style="background:var(--rv-navy-2);border:1px solid var(--rv-border)">
+            <div class="modal-header" style="border-bottom:1px solid var(--rv-border)">
+                <h5 class="modal-title rv-page-title d-flex align-items-center gap-2" id="flagModalTitle">Flag User</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="flagUserId">
+                <input type="hidden" id="flagAction">
+                <div class="mb-3">
+                    <label class="form-label rv-mono small">REASON</label>
+                    <select id="flagReason" class="form-select">
+                        <option>Suspicious Voting Pattern</option>
+                        <option>Duplicate Vote Attempts</option>
+                        <option>Abnormal Vote Frequency</option>
+                        <option>Suspicious IP/Device Pattern</option>
+                        <option>Manual Compliance Review</option>
+                        <option>Other</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label rv-mono small">ADDITIONAL NOTES</label>
+                    <textarea id="flagNotes" class="form-control rv-mono" rows="3" placeholder="Optional investigation notes…"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer" style="border-top:1px solid var(--rv-border)">
+                <button class="btn btn-sm btn-outline-dark" data-bs-dismiss="modal">Cancel</button>
+                <button class="btn btn-sm btn-accent d-inline-flex align-items-center gap-1" onclick="submitFlagAction()">
+                    <span th:replace="~{fragments/heroicons :: flag('heroicon-sm')}"></span>
+                    <span id="flagBtnLabel">Flag User</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     SEND MESSAGE MODAL
+════════════════════════════════════════════════════════════════════════ -->
+<div class="modal fade" id="messageModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content" style="background:var(--rv-navy-2);border:1px solid var(--rv-border)">
+            <div class="modal-header" style="border-bottom:1px solid var(--rv-border)">
+                <h5 class="modal-title rv-page-title d-flex align-items-center gap-2">
+                    <span th:replace="~{fragments/heroicons :: envelope('heroicon text-info')}"></span>
+                    <span>Send Compliance Message</span>
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="msgUserId">
+                <div class="mb-3">
+                    <label class="form-label rv-mono small">SUBJECT</label>
+                    <input id="msgSubject" class="form-control rv-mono" value="Voting Activity Review">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label rv-mono small">MESSAGE</label>
+                    <textarea id="msgBody" class="form-control rv-mono" rows="5"
+                              placeholder="We detected unusual voting activity on your account…"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer" style="border-top:1px solid var(--rv-border)">
+                <button class="btn btn-sm btn-outline-dark" data-bs-dismiss="modal">Cancel</button>
+                <button class="btn btn-sm btn-accent d-inline-flex align-items-center gap-1" onclick="submitMessage()">
+                    <span th:replace="~{fragments/heroicons :: paperAirplane('heroicon-sm')}"></span>
+                    <span>Send Message</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     TOAST NOTIFICATION
+════════════════════════════════════════════════════════════════════════ -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index:9999">
+    <div id="actionToast" class="toast align-items-center text-white border-0"
+         role="alert" style="background:var(--rv-navy-3)">
+        <div class="d-flex">
+            <div class="toast-body rv-mono small" id="toastMsg">Action completed.</div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     JAVASCRIPT
+════════════════════════════════════════════════════════════════════════ -->
+<script th:inline="javascript">
+/*<![CDATA[*/
+const SESSION_ID    = /*[[${selectedSessionId}]]*/ null;
+const CSRF_TOKEN    = document.cookie.split(';')
+        .find(c => c.trim().startsWith('XSRF-TOKEN='))
+        ?.split('=')[1] || '';
+
+// ── Chart instances ──────────────────────────────────────────────────────────
+let userChart    = null;
+let voteChart    = null;
+let currentPage  = 0;
+let totalPages   = 1;
+let debounceTimer = null;
+
+// ── Apache ECharts Theme Helper ──────────────────────────────────────────────
+function getEchartsThemeColors() {
+    const isLight = document.documentElement.getAttribute('data-bs-theme') === 'light';
+    return {
+        textColor: isLight ? '#4b5563' : '#8a8f9c',
+        splitLineColor: isLight ? '#e5e7eb' : '#22242c',
+        axisLineColor: isLight ? '#d1d5db' : '#2a2d36',
+        tooltipBg: isLight ? '#ffffff' : '#121317',
+        tooltipBorder: isLight ? '#e5e7eb' : '#2a2d36',
+        tooltipText: isLight ? '#111827' : '#e9ecef'
+    };
+}
+
+// ── Init on load ─────────────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+    if (!SESSION_ID) return;
+    refreshAll();
+    // Auto-refresh intervals
+    setInterval(refreshCharts, 30000);
+    setInterval(refreshFeed,   15000);
+
+    // Responsive chart resize
+    window.addEventListener('resize', () => {
+        if (userChart) userChart.resize();
+        if (voteChart) voteChart.resize();
+    });
+
+    // Theme sync listener
+    window.addEventListener('themeChanged', () => {
+        if (SESSION_ID) refreshCharts();
+    });
+});
+
+function refreshAll() {
+    refreshCharts();
+    refreshFeed();
+}
+
+// ── Chart 1: User count over time (Apache ECharts) ────────────────────────────
+async function refreshCharts() {
+    if (!SESSION_ID) return;
+    await Promise.all([refreshUserChart(), refreshVoteTrendChart()]);
+}
+
+async function refreshUserChart() {
+    try {
+        const res  = await fetch(`/compliance/monitoring/${SESSION_ID}/user-trend?intervalMin=5`);
+        const data = await res.json();
+
+        const categories = data.map(p => p.timeLabel);
+        const series     = data.map(p => p.userCount);
+        const hasData    = series.some(v => v > 0);
+
+        document.getElementById('userCountEmpty').style.display = hasData ? 'none' : 'block';
+        document.getElementById('userCountChart').style.display = hasData ? 'block' : 'none';
+
+        if (!hasData) return;
+
+        const chartDom = document.getElementById('userCountChart');
+        if (!userChart) {
+            userChart = echarts.init(chartDom);
+        }
+
+        const colors = getEchartsThemeColors();
+        const option = {
+            backgroundColor: 'transparent',
+            grid: { top: 25, right: 20, bottom: 30, left: 45, containLabel: false },
+            tooltip: {
+                trigger: 'axis',
+                backgroundColor: colors.tooltipBg,
+                borderColor: colors.tooltipBorder,
+                borderWidth: 1,
+                textStyle: { color: colors.tooltipText, fontFamily: "'JetBrains Mono', monospace", fontSize: 12 },
+                formatter: function (params) {
+                    const p = params[0];
+                    return `<b>${p.name}</b><br/>Participants: <b>${p.value}</b>`;
+                }
+            },
+            xAxis: {
+                type: 'category',
+                data: categories,
+                axisLine: { lineStyle: { color: colors.axisLineColor } },
+                axisLabel: { color: colors.textColor, fontSize: 10 }
+            },
+            yAxis: {
+                type: 'value',
+                min: 0,
+                splitLine: { lineStyle: { color: colors.splitLineColor } },
+                axisLabel: { color: colors.textColor, fontSize: 10 }
+            },
+            series: [{
+                name: 'Participating Users',
+                type: 'line',
+                smooth: 0.35,
+                data: series,
+                lineStyle: { width: 2.5, color: '#00e5ff' },
+                itemStyle: { color: '#00e5ff' },
+                showSymbol: false,
+                areaStyle: {
+                    color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                        { offset: 0, color: 'rgba(0, 229, 255, 0.40)' },
+                        { offset: 1, color: 'rgba(0, 229, 255, 0.02)' }
+                    ])
+                }
+            }]
+        };
+
+        userChart.setOption(option);
+    } catch (e) { console.error('User chart error', e); }
+}
+
+// ── Chart 2: Votes by contestant over time (Apache ECharts) ───────────────────
+async function refreshVoteTrendChart() {
+    try {
+        const res  = await fetch(`/compliance/monitoring/${SESSION_ID}/vote-trend?intervalMin=5`);
+        const data = await res.json();
+
+        if (!data || data.length === 0) {
+            document.getElementById('voteTrendEmpty').style.display = 'block';
+            document.getElementById('voteTrendChart').style.display = 'none';
+            return;
+        }
+
+        // Group by contestant
+        const byContestant = {};
+        const categoriesSet = new Set();
+        data.forEach(p => {
+            categoriesSet.add(p.timeLabel);
+            if (!byContestant[p.contestantId]) {
+                byContestant[p.contestantId] = { name: p.contestantName, color: p.contestantColor || '#00e5ff', data: [] };
+            }
+        });
+        const categories = [...categoriesSet].sort();
+
+        // Build series data
+        categories.forEach(label => {
+            Object.keys(byContestant).forEach(cid => {
+                const pt = data.find(p => String(p.contestantId) === String(cid) && p.timeLabel === label);
+                byContestant[cid].data.push(pt ? pt.voteCount : 0);
+            });
+        });
+
+        const hasData = Object.values(byContestant).some(s => s.data.some(v => v && v > 0));
+        document.getElementById('voteTrendEmpty').style.display = hasData ? 'none' : 'block';
+        document.getElementById('voteTrendChart').style.display = hasData ? 'block' : 'none';
+        if (!hasData) return;
+
+        const chartDom = document.getElementById('voteTrendChart');
+        if (!voteChart) {
+            voteChart = echarts.init(chartDom);
+            voteChart.on('click', function(params) {
+                if (params && params.name) {
+                    const filterInput = document.getElementById('filterKeyword');
+                    if (filterInput) filterInput.value = '';
+                    const timeRange = document.getElementById('filterTimeRange');
+                    if (timeRange) timeRange.value = '15';
+                    refreshFeed();
+                }
+            });
+        }
+
+        const colors = getEchartsThemeColors();
+        const seriesList = Object.values(byContestant).map(s => ({
+            name: s.name,
+            type: 'line',
+            smooth: 0.35,
+            data: s.data,
+            lineStyle: { width: 2.2, color: s.color },
+            itemStyle: { color: s.color },
+            showSymbol: false
+        }));
+
+        const option = {
+            backgroundColor: 'transparent',
+            grid: { top: 35, right: 20, bottom: 30, left: 45, containLabel: false },
+            legend: {
+                top: 0,
+                textStyle: { color: colors.textColor, fontSize: 11 }
+            },
+            tooltip: {
+                trigger: 'axis',
+                backgroundColor: colors.tooltipBg,
+                borderColor: colors.tooltipBorder,
+                borderWidth: 1,
+                textStyle: { color: colors.tooltipText, fontFamily: "'JetBrains Mono', monospace", fontSize: 12 }
+            },
+            xAxis: {
+                type: 'category',
+                data: categories,
+                axisLine: { lineStyle: { color: colors.axisLineColor } },
+                axisLabel: { color: colors.textColor, fontSize: 10 }
+            },
+            yAxis: {
+                type: 'value',
+                min: 0,
+                splitLine: { lineStyle: { color: colors.splitLineColor } },
+                axisLabel: { color: colors.textColor, fontSize: 10 }
+            },
+            series: seriesList
+        };
+
+        voteChart.setOption(option);
+    } catch (e) { console.error('Vote trend chart error', e); }
+}
+
+// ── Heroicons SVG Library for Compliance Monitoring (https://heroicons.com) ──
+const HEROICONS_SVG = {
+    inbox: `<svg class="heroicon me-1 text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M2.25 13.5h3.86a2.25 2.25 0 0 1 2.012 1.244l.256.512a2.25 2.25 0 0 0 2.013 1.244h3.218a2.25 2.25 0 0 0 2.013-1.244l.256-.512a2.25 2.25 0 0 1 2.013-1.244h3.859m-19.5.375v4.5A2.25 2.25 0 0 0 4.5 21h15a2.25 2.25 0 0 0 2.25-2.25v-4.5m-19.5 0A2.25 2.25 0 0 1 4.5 9h3.75a2.25 2.25 0 0 1 1.768.857l1.464 1.886a2.25 2.25 0 0 0 1.768.857h2.5a2.25 2.25 0 0 0 1.768-.857l1.464-1.886A2.25 2.25 0 0 1 18.75 9H22.5a2.25 2.25 0 0 1 2.25 2.25v2.25"/></svg>`,
+    eye: `<svg class="heroicon heroicon-sm me-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>`,
+    flag: `<svg class="heroicon heroicon-sm text-danger" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M3 3v1.5M3 21v-6m0 0 2.77-.693a9 9 0 0 1 6.208.682l.108.054a9 9 0 0 0 6.086.71l3.114-.732a48.524 48.524 0 0 1-.005-10.499l-3.11.732a9 9 0 0 1-6.085-.711l-.108-.054a9 9 0 0 0-6.208-.682L3 4.5M3 15V4.5"/></svg>`,
+    unflag: `<svg class="heroicon heroicon-sm me-1 text-success" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M9 12.75 11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 0 1-1.043 3.296 3.745 3.745 0 0 1-3.296 1.043A3.745 3.745 0 0 1 12 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 0 1-3.296-1.043 3.745 3.745 0 0 1-1.043-3.296A3.745 3.745 0 0 1 3 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 0 1 1.043-3.296 3.746 3.746 0 0 1 3.296-1.043A3.746 3.746 0 0 1 12 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 0 1 3.296 1.043 3.746 3.746 0 0 1 1.043 3.296A3.745 3.745 0 0 1 21 12Z"/></svg>`,
+    warning: `<svg class="heroicon heroicon-sm me-1 text-warning" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/></svg>`,
+    envelope: `<svg class="heroicon heroicon-sm me-1 text-info" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75"/></svg>`,
+    checkCircle: `<svg class="heroicon heroicon-sm me-1 text-success" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>`,
+    xCircle: `<svg class="heroicon heroicon-sm me-1 text-danger" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>`,
+    login: `<svg class="heroicon heroicon-sm me-1 text-info" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9"/></svg>`,
+    bug: `<svg class="heroicon heroicon-sm me-1 text-danger" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M12 9v3.75m0-10.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.75c0 5.592 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.57-.598-3.75h-.152c-3.196 0-6.1-1.25-8.25-3.286Zm0 13.036h.008v.008H12v-.008Z"/></svg>`,
+    circle: `<svg class="heroicon heroicon-sm me-1" fill="currentColor" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3"/></svg>`,
+    exclamationCircle: `<svg class="heroicon heroicon-sm me-1 text-danger" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z"/></svg>`
+};
+
+// ── Activity feed ────────────────────────────────────────────────────────────
+async function refreshFeed() {
+    if (!SESSION_ID) return;
+    const keyword   = document.getElementById('filterKeyword')?.value || '';
+    const eventType = document.getElementById('filterEventType')?.value || '';
+    const minutes   = document.getElementById('filterTimeRange')?.value || '60';
+
+    const params = new URLSearchParams({ keyword, eventType, minutesAgo: minutes, page: currentPage, size: 25 });
+    try {
+        const res  = await fetch(`/compliance/monitoring/${SESSION_ID}/activity?${params}`);
+        const data = await res.json();
+
+        totalPages = data.totalPages || 1;
+        document.getElementById('pageLabel').textContent = `${currentPage + 1} / ${totalPages}`;
+        document.getElementById('btnPrev').disabled = currentPage <= 0;
+        document.getElementById('btnNext').disabled = currentPage >= totalPages - 1;
+        document.getElementById('feedCount').textContent =
+            `${data.totalElements} event${data.totalElements !== 1 ? 's' : ''}`;
+
+        const tbody = document.getElementById('activityBody');
+        const rows  = data.content || [];
+
+        if (rows.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="8" class="text-center text-muted py-4">
+                ${HEROICONS_SVG.inbox}No activity found for current filters.</td></tr>`;
+        } else {
+            tbody.innerHTML = rows.map(row => {
+                const timeStr = row.time ? new Date(row.time).toLocaleTimeString('en-GB') : '—';
+                const name    = row.userEmail || '—';
+                const actBadge = activityBadge(row.activityType);
+                const statusBadge = userStatusBadge(row.userStatus);
+                const riskBadge   = riskBadge2(row.flagged, row.activityType);
+                const rowClass  = row.flagged ? 'table-danger' : (row.activityType === 'VOTE_REJECTED' ? 'table-warning' : '');
+                return `<tr class="${rowClass}">
+                    <td class="rv-mono small">${timeStr}</td>
+                    <td>
+                        <div class="rv-mono small" style="color:var(--rv-cyan)">${name}</div>
+                    </td>
+                    <td>${actBadge}</td>
+                    <td class="small text-muted" style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"
+                        title="${escHtml(row.description || '')}">${escHtml(row.description || '—')}</td>
+                    <td class="rv-mono small text-muted">${row.ipAddress || '—'}</td>
+                    <td>${statusBadge}</td>
+                    <td>${riskBadge}</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-dark py-0 px-2 d-inline-flex align-items-center"
+                                onclick="openUserDrawer('${escHtml(row.userEmail || '')}')">
+                            ${HEROICONS_SVG.eye}<span>View</span>
+                        </button>
+                    </td>
+                </tr>`;
+            }).join('');
+        }
+
+        const now = new Date().toLocaleTimeString('en-GB');
+        document.getElementById('feedStatus').textContent = `Last updated: ${now}`;
+    } catch (e) {
+        console.error('Feed error', e);
+        document.getElementById('feedStatus').textContent = 'Update failed — retrying…';
+    }
+}
+
+function changePage(delta) {
+    currentPage = Math.max(0, Math.min(currentPage + delta, totalPages - 1));
+    refreshFeed();
+}
+
+function debounceRefreshFeed() {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(refreshFeed, 400);
+}
+
+// ── User drawer ──────────────────────────────────────────────────────────────
+async function openUserDrawer(email) {
+    const drawer  = new bootstrap.Offcanvas(document.getElementById('userDrawer'));
+    const body    = document.getElementById('userDrawerBody');
+    body.innerHTML = '<div class="text-center py-5"><span class="spinner-border spinner-border-sm"></span></div>';
+    drawer.show();
+
+    try {
+        const res  = await fetch(`/compliance/monitoring/user/profile?email=${encodeURIComponent(email)}`);
+        if (!res.ok) throw new Error('Not found');
+        const p    = await res.json();
+
+        const statusColor = { ACTIVE:'#2af0a0', WARNING:'#ffc857', FLAGGED:'#ff5c72', SUSPENDED:'#ff5c72' };
+        const sc = statusColor[p.status] || '#adb5bd';
+
+        // Recent activity HTML
+        const actHtml = (p.recentActivity || []).slice(0, 10).map(log => {
+            const t = log.createdDate ? new Date(log.createdDate).toLocaleTimeString('en-GB') : '?';
+            const evBadge = activityBadge(log.eventType);
+            const flagIco = log.flagged ? ` ${HEROICONS_SVG.flag}` : '';
+            return `<li class="list-group-item py-1 px-0" style="background:transparent;border-color:var(--rv-border)">
+                <div class="d-flex justify-content-between align-items-center">
+                    <span>${evBadge}${flagIco}</span>
+                    <span class="rv-mono small text-muted">${t}</span>
+                </div>
+                <small class="text-muted" style="font-size:.75rem">${escHtml(log.description || '')}</small>
+            </li>`;
+        }).join('') || '<li class="list-group-item text-muted small py-2 px-0">No recent activity.</li>';
+
+        const isFlagged = p.status === 'FLAGGED' || p.status === 'WARNING';
+
+        body.innerHTML = `
+            <!-- Identity -->
+            <div class="mb-3 pb-3" style="border-bottom:1px solid var(--rv-border)">
+                <div class="rv-mono small mb-1" style="color:var(--rv-text-muted)">ID #${p.id}</div>
+                <div class="fw-bold" style="font-size:1.1rem">${escHtml(p.fullName)}</div>
+                <div class="rv-mono small" style="color:var(--rv-cyan)">${escHtml(p.email)}</div>
+                <div class="mt-2">
+                    <span class="status-badge rv-mono" style="background:${sc}22;color:${sc};border:1px solid ${sc}55">
+                        ● ${p.status}
+                    </span>
+                    ${p.enabled ? '' : '<span class="badge bg-danger ms-1">DISABLED</span>'}
+                </div>
+                <small class="text-muted">Registered: ${p.registeredAt ? new Date(p.registeredAt).toLocaleDateString() : '—'}</small>
+            </div>
+
+            <!-- Stats -->
+            <div class="mb-3 pb-3" style="border-bottom:1px solid var(--rv-border)">
+                <div class="rv-mono small mb-2" style="color:var(--rv-text-muted)">── ACTIVITY SUMMARY ──</div>
+                <div class="row g-2 text-center">
+                    <div class="col-4">
+                        <div class="rv-mono fw-bold" style="color:var(--rv-cyan);font-size:1.3rem">${p.totalVotes}</div>
+                        <small class="text-muted">Votes</small>
+                    </div>
+                    <div class="col-4">
+                        <div class="rv-mono fw-bold" style="color:var(--rv-danger);font-size:1.3rem">${p.totalRejections}</div>
+                        <small class="text-muted">Rejected</small>
+                    </div>
+                    <div class="col-4">
+                        <div class="rv-mono fw-bold" style="color:var(--rv-warning);font-size:1.3rem">${p.flaggedEvents}</div>
+                        <small class="text-muted">Flagged Evt</small>
+                    </div>
+                    <div class="col-6 mt-1">
+                        <div class="rv-mono fw-bold" style="color:var(--rv-success);font-size:1.1rem">${p.loginSuccesses}</div>
+                        <small class="text-muted">Logins</small>
+                    </div>
+                    <div class="col-6 mt-1">
+                        <div class="rv-mono fw-bold" style="color:var(--rv-danger);font-size:1.1rem">${p.loginFailures}</div>
+                        <small class="text-muted">Failed Logins</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent activity -->
+            <div class="mb-3">
+                <div class="rv-mono small mb-2" style="color:var(--rv-text-muted)">── RECENT ACTIVITY ──</div>
+                <ul class="list-group list-group-flush">${actHtml}</ul>
+            </div>
+
+            <!-- Action buttons -->
+            <div class="d-grid gap-2 mt-3">
+                ${isFlagged
+                    ? `<button class="btn btn-sm btn-outline-warning d-inline-flex align-items-center justify-content-center"
+                               onclick="openFlagModal(${p.id},'unflag','Unflag User')">
+                           ${HEROICONS_SVG.unflag}<span>Unflag User</span>
+                       </button>`
+                    : `<button class="btn btn-sm btn-outline-danger d-inline-flex align-items-center justify-content-center"
+                               onclick="openFlagModal(${p.id},'flag','Flag User')">
+                           ${HEROICONS_SVG.flag}<span>Flag User</span>
+                       </button>`
+                }
+                <button class="btn btn-sm btn-outline-warning d-inline-flex align-items-center justify-content-center"
+                        onclick="openFlagModal(${p.id},'warn','Issue Warning')">
+                    ${HEROICONS_SVG.warning}<span>Issue Warning</span>
+                </button>
+                <button class="btn btn-sm btn-outline-info d-inline-flex align-items-center justify-content-center"
+                        onclick="openMessageModal(${p.id})">
+                    ${HEROICONS_SVG.envelope}<span>Send Message</span>
+                </button>
+            </div>`;
+    } catch(e) {
+        body.innerHTML = `<div class="alert alert-danger mt-3 d-flex align-items-center gap-2">
+            ${HEROICONS_SVG.exclamationCircle}<span>Could not load user profile.<br><small>${e.message}</small></span></div>`;
+    }
+}
+
+// ── Modals ───────────────────────────────────────────────────────────────────
+function openFlagModal(userId, action, title) {
+    document.getElementById('flagUserId').value = userId;
+    document.getElementById('flagAction').value = action;
+    document.getElementById('flagModalTitle').textContent = title;
+    document.getElementById('flagBtnLabel').textContent = title;
+    document.getElementById('flagNotes').value = '';
+    new bootstrap.Modal(document.getElementById('flagModal')).show();
+}
+
+async function submitFlagAction() {
+    const userId = document.getElementById('flagUserId').value;
+    const action = document.getElementById('flagAction').value;
+    const reason = document.getElementById('flagReason').value;
+    const notes  = document.getElementById('flagNotes').value;
+
+    const endpoint = action === 'warn'
+        ? `/compliance/monitoring/user/${userId}/warn`
+        : action === 'unflag'
+            ? `/compliance/monitoring/user/${userId}/unflag`
+            : `/compliance/monitoring/user/${userId}/flag`;
+
+    try {
+        const res  = await fetchJson(endpoint, { reason, notes });
+        const data = await res.json();
+        bootstrap.Modal.getInstance(document.getElementById('flagModal'))?.hide();
+        showToast(data.message || 'Action completed.', data.success);
+        refreshFeed();
+    } catch(e) { showToast('Action failed: ' + e.message, false); }
+}
+
+function openMessageModal(userId) {
+    document.getElementById('msgUserId').value = userId;
+    document.getElementById('msgBody').value = '';
+    new bootstrap.Modal(document.getElementById('messageModal')).show();
+}
+
+async function submitMessage() {
+    const userId  = document.getElementById('msgUserId').value;
+    const subject = document.getElementById('msgSubject').value;
+    const body    = document.getElementById('msgBody').value;
+    if (!body.trim()) { alert('Message body is required.'); return; }
+
+    try {
+        const res  = await fetchJson(`/compliance/monitoring/user/${userId}/message`, { subject, body });
+        const data = await res.json();
+        bootstrap.Modal.getInstance(document.getElementById('messageModal'))?.hide();
+        showToast(data.message || 'Message sent.', data.success);
+    } catch(e) { showToast('Send failed: ' + e.message, false); }
+}
+
+// ── Utilities ────────────────────────────────────────────────────────────────
+function fetchJson(url, body) {
+    return fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-XSRF-TOKEN': CSRF_TOKEN },
+        body: JSON.stringify(body)
+    });
+}
+
+function showToast(msg, ok = true) {
+    const toast = document.getElementById('actionToast');
+    toast.style.borderLeft = `3px solid ${ok ? '#2af0a0' : '#ff5c72'}`;
+    document.getElementById('toastMsg').textContent = msg;
+    bootstrap.Toast.getOrCreateInstance(toast).show();
+}
+
+function activityBadge(type) {
+    const MAP = {
+        'VOTE_CAST':            ['#2af0a0', HEROICONS_SVG.checkCircle, 'Vote Cast'],
+        'VOTE_REJECTED':        ['#ff5c72', HEROICONS_SVG.xCircle,     'Rejected'],
+        'LOGIN_SUCCESS':        ['#00e5ff', HEROICONS_SVG.login,       'Login'],
+        'LOGIN_FAILURE':        ['#ffc857', HEROICONS_SVG.xCircle,     'Login Fail'],
+        'SUSPICIOUS_ACTIVITY':  ['#ff5c72', HEROICONS_SVG.bug,         'Suspicious'],
+        'USER_FLAGGED':         ['#ff5c72', HEROICONS_SVG.flag,        'Flagged'],
+        'USER_WARNED':          ['#ffc857', HEROICONS_SVG.warning,     'Warned'],
+        'USER_UNFLAGGED':       ['#2af0a0', HEROICONS_SVG.unflag,      'Unflagged'],
+        'COMPLIANCE_MESSAGE_SENT':['#6db8ff', HEROICONS_SVG.envelope,  'Message Sent']
+    };
+    const [color, iconSvg, label] = MAP[type] || ['#adb5bd', HEROICONS_SVG.circle, type || '—'];
+    return `<span class="rv-mono d-inline-flex align-items-center" style="font-size:.75rem;color:${color}">
+        ${iconSvg}<span>${label}</span></span>`;
+}
+
+function userStatusBadge(status) {
+    const MAP = {
+        'ACTIVE':    ['#2af0a0', '🟢 Active'],
+        'WARNING':   ['#ffc857', '🟡 Warning'],
+        'FLAGGED':   ['#ff5c72', '🟠 Flagged'],
+        'SUSPENDED': ['#ff5c72', '🔴 Suspended']
+    };
+    const [color, label] = MAP[status] || ['#adb5bd', status || 'Unknown'];
+    return `<span class="rv-mono" style="font-size:.73rem;color:${color}">${label}</span>`;
+}
+
+function riskBadge2(flagged, type) {
+    if (flagged || type === 'SUSPICIOUS_ACTIVITY') return '<span class="rv-mono" style="color:#ff5c72;font-size:.73rem">🔴 High</span>';
+    if (type === 'VOTE_REJECTED' || type === 'LOGIN_FAILURE') return '<span class="rv-mono" style="color:#ffc857;font-size:.73rem">🟡 Med</span>';
+    return '<span class="rv-mono" style="color:#2af0a0;font-size:.73rem">🟢 Normal</span>';
+}
+
+function escHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+/*]]>*/
+</script>
+</body>
+</html>
