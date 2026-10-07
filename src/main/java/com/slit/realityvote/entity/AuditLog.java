@@ -16,6 +16,12 @@ import java.time.LocalDateTime;
  * AuditLogServiceImpl (repeated rejected votes / failed logins in a
  * short window) so the Compliance Officer's dashboard can surface them
  * without scanning the whole table.
+ *
+ * Module 6.4 additions (nullable, backward-compatible):
+ *   action     — free-text action label used by AuditLoggingAspect
+ *   entityType — which domain object was affected (e.g. "Vote", "VotingSession")
+ *   entityId   — the PK of that object
+ *   ipAddress  — remote address captured from the HTTP request
  */
 @Entity
 @Table(name = "audit_logs")
@@ -31,7 +37,7 @@ public class AuditLog {
     private Long id;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, columnDefinition = "VARCHAR(50)")
+    @Column(nullable = false, length = 50)
     private AuditEventType eventType;
 
     @Column(nullable = false, length = 500)
@@ -46,6 +52,23 @@ public class AuditLog {
 
     @Column(updatable = false)
     private LocalDateTime createdDate;
+
+    // ── Module 6.4 additions ──────────────────────────────────────────────────
+
+    /** Free-text action label set by AuditLoggingAspect (e.g. "CAST_VOTE", "OPEN_SESSION"). */
+    @Column(length = 100)
+    private String action;
+
+    /** Domain type of the affected entity, e.g. "Vote", "VotingSession", "User". */
+    @Column(length = 100)
+    private String entityType;
+
+    /** Primary key of the affected entity; null for events not tied to a single record. */
+    private Long entityId;
+
+    /** Remote IP address captured from the HTTP request; may be null for internal/scheduled events. */
+    @Column(length = 60)
+    private String ipAddress;
 
     @PrePersist
     protected void onCreate() {

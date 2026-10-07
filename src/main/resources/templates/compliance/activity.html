@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Vote Activity Chart')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<div class="rv-page" style="max-width:1100px">
+
+    <!-- Page header -->
+    <div class="d-flex align-items-center gap-3 mb-4">
+        <a th:href="@{/compliance/dashboard}" class="btn btn-sm btn-outline-dark d-inline-flex align-items-center gap-1">
+            <span th:replace="~{fragments/heroicons :: arrowLeft('heroicon-sm')}"></span> Dashboard
+        </a>
+        <h2 class="rv-page-title mb-0 d-flex align-items-center gap-2">
+            <span th:replace="~{fragments/heroicons :: chartBar('heroicon-md')}"></span> Vote Activity Chart
+        </h2>
+    </div>
+
+    <!-- Flash message -->
+    <div th:if="${flash}" class="alert alert-info py-2 px-3 mb-3" style="font-size:.85rem;"
+         th:text="${flash}"></div>
+
+    <!-- Session selector form -->
+    <form class="rv-card mb-4 row g-2 align-items-end"
+          method="get" th:action="@{/compliance/activity}">
+        <div class="col-md-8">
+            <label class="form-label mb-1">Select Voting Session</label>
+            <select name="sessionId" class="form-select">
+                <option value="">— Choose a session —</option>
+                <option th:each="s : ${sessions}"
+                        th:value="${s.id}"
+                        th:text="'Session #' + ${s.id} + '  (' + ${s.status} + ')'"
+                        th:selected="${selectedSessionId != null and selectedSessionId == s.id}">
+                </option>
+            </select>
+        </div>
+        <div class="col-md-4">
+            <button class="btn btn-outline-dark w-100 d-inline-flex align-items-center justify-content-center gap-1" type="submit">
+                <span th:replace="~{fragments/heroicons :: magnifyingGlass('heroicon-sm')}"></span> Load Chart
+            </button>
+        </div>
+    </form>
+
+    <!-- Empty state -->
+    <div th:unless="${activity}" class="rv-card text-center py-5">
+        <span th:replace="~{fragments/heroicons :: chartBar('heroicon-xl mb-3')}" style="color:var(--rv-cyan);opacity:.3;display:inline-block;"></span>
+        <p class="text-muted mb-0">Select a session above to load the activity chart.</p>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════════════════ -->
+    <!-- Chart content — shown only after a session is selected               -->
+    <!-- ══════════════════════════════════════════════════════════════════════ -->
+    <div th:if="${activity}">
+
+        <!-- ── Data source / mode selector row ────────────────────────────── -->
+        <div class="rv-card mb-4 d-flex flex-wrap align-items-center gap-3">
+
+            <!-- Source badge -->
+            <div class="d-flex align-items-center gap-2 me-2">
+                <span class="text-muted small">Data source:</span>
+                <!-- Auto-snapshot badge (DATABASE mode) -->
+                <span th:if="${viewingRecord != null and viewingRecord.autoSnapshot}"
+                      class="badge border d-inline-flex align-items-center gap-1"
+                      style="background:#0d1b1e;color:#00e5ff;border-color:#00e5ff44 !important;">
+                    <span th:replace="~{fragments/heroicons :: circleStack('heroicon-sm')}"></span> Auto-snapshot
+                </span>
+                <!-- Historical saved-report badge -->
+                <span th:if="${viewingRecord != null and !viewingRecord.autoSnapshot}"
+                      class="badge border d-inline-flex align-items-center gap-1"
+                      style="background:#1e1a10;color:#ffc857;border-color:#ffc85744 !important;">
+                    <span th:replace="~{fragments/heroicons :: clock('heroicon-sm')}"></span>
+                    Saved Report #<span th:text="${viewingRecord.id}"></span>
+                </span>
+            </div>
+
+            <!-- Historical report selector -->
+            <form method="get" th:action="@{/compliance/activity}"
+                  class="d-flex gap-2 align-items-center">
+                <input type="hidden" name="sessionId" th:value="${selectedSessionId}"/>
+                <select name="reportId" class="form-select form-select-sm"
+                        style="max-width:340px" onchange="this.form.submit()">
+                    <option value=""
+                            th:selected="${viewingRecord != null and viewingRecord.autoSnapshot}">
+                        Current snapshot (latest)
+                    </option>
+                    <option th:each="r : ${savedReports}"
+                            th:if="${!r.autoSnapshot}"
+                            th:value="${r.id}"
+                            th:selected="${viewingRecord != null and viewingRecord.id == r.id}"
+                            th:text="|#${r.id} · ${r.status} · ${#temporals.format(r.generatedAt, 'dd MMM yyyy HH:mm')}|">
+                    </option>
+                </select>
+            </form>
+
+            <!-- Spacer -->
+            <div class="ms-auto"></div>
+
+            <!-- Refresh from live DB button -->
+            <form method="post"
+                  th:action="@{/compliance/activity/{sid}/refresh(sid=${selectedSessionId})}">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                <button class="btn btn-sm btn-outline-dark d-inline-flex align-items-center gap-1" type="submit"
+                        title="Query the live votes table now and update the snapshot">
+                    <span th:replace="~{fragments/heroicons :: arrowPath('heroicon-sm')}"></span> Refresh from live DB
+                </button>
+            </form>
+        </div>
+
+        <!-- ── Auto-snapshot info banner ─────────────────────────────────── -->
+        <div th:if="${viewingRecord != null and viewingRecord.autoSnapshot}"
+             class="alert py-2 px-3 mb-4 d-flex gap-2 align-items-center"
+             style="background:#0d1b1e;border:1px solid #00e5ff33;font-size:.83rem;color:#9ba3b0;">
+            <span th:replace="~{fragments/heroicons :: circleStack('heroicon-md')}" style="color:#00e5ff"></span>
+            <span>
+                Showing the <strong style="color:#00e5ff">database auto-snapshot</strong>
+                — updated automatically after every vote event.
+                Last synced:
+                <strong th:text="${#temporals.format(viewingRecord.generatedAt, 'dd MMM yyyy HH:mm:ss')}"></strong>.
+                Click <em>Refresh from live DB</em> to force an immediate re-sync.
+            </span>
+        </div>
+
+        <!-- ── Historical report info banner ─────────────────────────────── -->
+        <div th:if="${viewingRecord != null and !viewingRecord.autoSnapshot}"
+             class="alert py-2 px-3 mb-4 d-flex gap-2 align-items-center"
+             style="background:#1e1a10;border:1px solid #ffc85733;font-size:.83rem;color:#9ba3b0;">
+            <span th:replace="~{fragments/heroicons :: clock('heroicon-md')}" style="color:#ffc857"></span>
+            <span>
+                Viewing <strong style="color:#ffc857">Saved Report
+                #<span th:text="${viewingRecord.id}"></span></strong>
+                (<span th:text="${viewingRecord.status}"></span>), generated
+                <strong th:text="${#temporals.format(viewingRecord.generatedAt, 'dd MMM yyyy HH:mm')}"></strong>.
+                This is a point-in-time snapshot.
+                <a th:href="@{/compliance/activity(sessionId=${selectedSessionId})}"
+                   style="color:#00e5ff">Switch to current snapshot</a>.
+            </span>
+        </div>
+
+        <!-- ── KPI cards ──────────────────────────────────────────────────── -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-4">
+                <div class="rv-card text-center">
+                    <div class="rv-mono fw-bold" style="color:var(--rv-cyan);font-size:2rem;"
+                         th:text="${activity.totalVotes}">0</div>
+                    <small class="text-muted">Total Votes Cast</small>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="rv-card text-center">
+                    <div class="rv-mono fw-bold" style="font-size:2rem;"
+                         th:style="'font-size:2rem;' + (${activity.totalRejected > 0} ? 'color:#ff5c72' : 'color:var(--rv-cyan)')"
+                         th:text="${activity.totalRejected}">0</div>
+                    <small class="text-muted">Vote Rejections</small>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="rv-card text-center">
+                    <div class="rv-mono fw-bold" style="color:var(--rv-cyan);font-size:2rem;"
+                         th:text="${activity.contestantStats.size()}">0</div>
+                    <small class="text-muted">Contestants</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Chart + Profile panel row ─────────────────────────────────── -->
+        <div class="row g-3">
+
+            <!-- Highcharts column chart -->
+            <div class="col-lg-8">
+                <div class="rv-card" style="min-height:380px">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="rv-page-title mb-0 d-flex align-items-center gap-2">
+                            <span th:replace="~{fragments/heroicons :: chartBar('heroicon-sm')}"></span> Votes per Contestant
+                        </h5>
+                        <!-- Colour legend -->
+                        <div class="d-flex gap-3" style="font-size:.75rem;">
+                            <span>
+                                <span style="display:inline-block;width:10px;height:10px;
+                                      border-radius:2px;background:#00e5ff;margin-right:4px;"></span>Active
+                            </span>
+                            <span>
+                                <span style="display:inline-block;width:10px;height:10px;
+                                      border-radius:2px;background:#ffc857;margin-right:4px;"></span>At-Risk
+                            </span>
+                            <span>
+                                <span style="display:inline-block;width:10px;height:10px;
+                                      border-radius:2px;background:#ff5c72;margin-right:4px;"></span>Flagged
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- No-data placeholder -->
+                    <div th:if="${activity.contestantStats.empty}"
+                         class="d-flex align-items-center justify-content-center"
+                         style="height:300px;">
+                        <div class="text-center text-muted">
+                            <span th:replace="~{fragments/heroicons :: inbox('heroicon-xl mb-2')}" style="opacity:.3;display:inline-block;"></span>
+                            <p class="mb-0 small">No votes recorded yet for this session.</p>
+                            <p class="mb-0 small text-muted">Cast some votes, then click
+                                <em>Refresh from live DB</em>.</p>
+                        </div>
+                    </div>
+
+                    <div id="activityChart"
+                         th:unless="${activity.contestantStats.empty}"
+                         style="height:300px;"></div>
+
+                    <p class="text-muted small mt-2 mb-0 d-flex align-items-center gap-1"
+                       th:unless="${activity.contestantStats.empty}">
+                        <span th:replace="~{fragments/heroicons :: informationCircle('heroicon-sm')}"></span>
+                        Click any bar to view that contestant's compliance profile.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Profile card panel — populated on bar click by JS -->
+            <div class="col-lg-4">
+                <div class="rv-card h-100" id="profilePanel"
+                     style="min-height:380px;display:flex;flex-direction:column;
+                            justify-content:center;align-items:center;">
+                    <div id="profileEmpty" class="text-center text-muted py-4">
+                        <span th:replace="~{fragments/heroicons :: arrowLeft('heroicon-xl mb-3')}" style="opacity:.3;display:inline-block;"></span>
+                        <p class="mb-0">Click a bar to view<br>contestant profile</p>
+                    </div>
+                    <div id="profileContent" style="display:none;width:100%">
+                        <div class="text-center mb-3">
+                            <div class="rv-mono fw-bold" id="pc-name"
+                                 style="font-size:1.1rem;color:var(--rv-cyan)"></div>
+                            <span id="pc-status-badge" class="status-badge mt-1"></span>
+                        </div>
+                        <table class="table table-sm mb-3" style="font-size:.82rem;">
+                            <tbody>
+                            <tr><th style="color:var(--rv-text-muted);width:90px">ID</th>
+                                <td class="rv-mono" id="pc-id"></td></tr>
+                            <tr><th style="color:var(--rv-text-muted)">Talent</th>
+                                <td id="pc-talent"></td></tr>
+                            <tr><th style="color:var(--rv-text-muted)">Hometown</th>
+                                <td id="pc-town"></td></tr>
+                            <tr><th style="color:var(--rv-text-muted)">Votes</th>
+                                <td class="rv-mono fw-bold" id="pc-votes"
+                                    style="color:var(--rv-cyan)"></td></tr>
+                            <tr id="pc-flagged-row" style="display:none">
+                                <th style="color:var(--rv-text-muted)">Anomaly</th>
+                                <td><span class="status-badge status-ELIMINATED d-inline-flex align-items-center gap-1">
+                                    <span th:replace="~{fragments/heroicons :: exclamationTriangle('heroicon-sm')}"></span> Flagged
+                                </span></td></tr>
+                            </tbody>
+                        </table>
+                        <div class="mb-3">
+                            <div class="text-muted small mb-1">Biography</div>
+                            <div id="pc-bio" style="font-size:.8rem;line-height:1.5;
+                                 max-height:100px;overflow-y:auto;color:#ccc;"></div>
+                        </div>
+                        <div class="d-grid">
+                            <a id="pc-link" href="#" class="btn btn-sm btn-outline-dark d-inline-flex align-items-center justify-content-center gap-1">
+                                <span th:replace="~{fragments/heroicons :: clipboardList('heroicon-sm')}"></span> Audit History
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div><!-- /row -->
+
+        <!-- Quick actions -->
+        <div class="d-flex gap-2 mt-3 justify-content-end">
+            <a class="btn btn-sm btn-outline-dark d-inline-flex align-items-center gap-1"
+               th:href="@{/compliance/anomalies(sessionId=${activity.sessionId})}">
+                <span th:replace="~{fragments/heroicons :: exclamationTriangle('heroicon-sm')}"></span> Anomaly Detection
+            </a>
+            <a class="btn btn-sm btn-outline-dark d-inline-flex align-items-center gap-1"
+               th:href="@{/compliance/verify/{id}(id=${activity.sessionId})}">
+                <span th:replace="~{fragments/heroicons :: shieldCheck('heroicon-sm')}"></span> Verify Integrity
+            </a>
+            <a class="btn btn-sm btn-accent d-inline-flex align-items-center gap-1"
+               th:href="@{/compliance/reports/{id}(id=${activity.sessionId})}">
+                <span th:replace="~{fragments/heroicons :: documentText('heroicon-sm')}"></span> Full Report
+            </a>
+        </div>
+
+    </div><!-- /th:if activity -->
+
+</div><!-- /rv-page -->
+
+<!-- ── Apache ECharts Script ─────────────────────────────────────────── -->
+<script th:if="${chartDataJson}" th:inline="javascript">
+/*<![CDATA[*/
+
+const CHART_DATA = JSON.parse(/*[[${chartDataJson}]]*/ "[]");
+
+// ── Status label map ──────────────────────────────────────────────────────
+const STATUS_LABELS = {
+    ACTIVE:     { text: 'Active',     cls: 'status-ACTIVE'    },
+    ELIMINATED: { text: 'Eliminated', cls: 'status-ELIMINATED'},
+    WITHDRAWN:  { text: 'Withdrawn',  cls: 'status-ARCHIVED'  },
+    WINNER:     { text: 'Winner',     cls: 'status-ACTIVE'    }
+};
+
+// ── Profile card ──────────────────────────────────────────────────────────
+function openProfile(point) {
+    document.getElementById('pc-name').textContent   = point.name;
+    document.getElementById('pc-id').textContent     = '#' + point.id;
+    document.getElementById('pc-talent').textContent = point.talent || '—';
+    document.getElementById('pc-town').textContent   = point.town   || '—';
+    document.getElementById('pc-votes').textContent  = (point.y || 0).toLocaleString();
+    document.getElementById('pc-bio').textContent    = point.bio    || '—';
+    document.getElementById('pc-link').href =
+        '/compliance/audit-logs/entity/Contestant/' + point.id;
+
+    const badge = document.getElementById('pc-status-badge');
+    const s = STATUS_LABELS[point.status] || { text: point.status, cls: '' };
+    badge.textContent = s.text;
+    badge.className   = 'status-badge ' + s.cls;
+
+    document.getElementById('pc-flagged-row').style.display =
+        point.flagged ? '' : 'none';
+
+    document.getElementById('profileEmpty').style.display   = 'none';
+    document.getElementById('profileContent').style.display = 'block';
+
+    const panel = document.getElementById('profilePanel');
+    panel.style.transition = 'box-shadow .25s';
+    panel.style.boxShadow  = '0 0 0 2px ' + (point.color || '#00e5ff');
+    setTimeout(() => { panel.style.boxShadow = ''; }, 700);
+}
+
+// ── Apache ECharts Integration ────────────────────────────────────────────
+const chartDom = document.getElementById('activityChart');
+if (chartDom) {
+    const myChart = echarts.init(chartDom);
+
+    const isLight = document.documentElement.getAttribute('data-bs-theme') === 'light';
+    const textColor = isLight ? '#4b5563' : '#8a8f9c';
+    const splitLineColor = isLight ? '#e5e7eb' : '#1e2130';
+    const axisLineColor = isLight ? '#d1d5db' : '#2d3140';
+    const tooltipBg = isLight ? '#ffffff' : '#1a1c22';
+    const tooltipBorder = isLight ? '#e5e7eb' : '#00e5ff';
+    const tooltipText = isLight ? '#111827' : '#e4e7ef';
+
+    const categories = CHART_DATA.map(p => p.name || 'Unknown');
+    const seriesData = CHART_DATA.map(p => ({
+        value: p.y || 0,
+        itemStyle: {
+            color: p.color || '#00e5ff',
+            borderRadius: [4, 4, 0, 0]
+        },
+        rawPoint: p
+    }));
+
+    const option = {
+        backgroundColor: 'transparent',
+        grid: { top: 25, right: 15, bottom: 45, left: 45, containLabel: false },
+        tooltip: {
+            trigger: 'item',
+            backgroundColor: tooltipBg,
+            borderColor: tooltipBorder,
+            borderWidth: 1,
+            textStyle: { color: tooltipText, fontFamily: "'Inter', sans-serif" },
+            formatter: function(params) {
+                const p = params.data.rawPoint;
+                let html = `<b>${p.name}</b><br/>Votes: <b>${(p.y || 0).toLocaleString()}</b><br/>Status: ${p.status || '—'}`;
+                if (p.flagged) {
+                    html += '<br/><span style="color:#ff5c72">&#9888; Anomaly flagged</span>';
+                }
+                return html;
+            }
+        },
+        xAxis: {
+            type: 'category',
+            data: categories,
+            axisLine: { lineStyle: { color: axisLineColor } },
+            axisLabel: {
+                color: textColor,
+                fontSize: 11,
+                formatter: function(val) {
+                    return val.length > 14 ? val.substring(0, 14) + '…' : val;
+                }
+            }
+        },
+        yAxis: {
+            type: 'value',
+            min: 0,
+            splitLine: { lineStyle: { color: splitLineColor } },
+            axisLabel: { color: textColor, fontSize: 11 }
+        },
+        series: [{
+            name: 'Votes',
+            type: 'bar',
+            barMaxWidth: 45,
+            data: seriesData,
+            label: {
+                show: true,
+                position: 'top',
+                color: textColor,
+                fontSize: 10,
+                formatter: function(params) {
+                    return params.value > 0 ? Number(params.value).toLocaleString() : '';
+                }
+            }
+        }]
+    };
+
+    myChart.setOption(option);
+
+    myChart.on('click', function(params) {
+        if (params && params.data && params.data.rawPoint) {
+            openProfile(params.data.rawPoint);
+        }
+    });
+
+    window.addEventListener('resize', () => { myChart.resize(); });
+    window.addEventListener('themeChanged', () => {
+        myChart.resize();
+    });
+}
+/*]]>*/
+</script>
+
+</body>
+</html>

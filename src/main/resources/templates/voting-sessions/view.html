@@ -7,10 +7,10 @@
 <div class="rv-page" style="max-width:700px">
     <a class="btn btn-sm btn-outline-secondary mb-3" th:href="@{/admin/voting-sessions}">Back to Sessions</a>
 
-    <div role="alert" class="alert alert-success" th:if="${successMessage}" th:text="${successMessage}"></div>
-    <div role="alert" class="alert alert-danger" th:if="${errorMessage}" th:text="${errorMessage}"></div>
+    <div class="alert alert-success" th:if="${successMessage}" th:text="${successMessage}"></div>
+    <div class="alert alert-danger" th:if="${errorMessage}" th:text="${errorMessage}"></div>
 
-    <div role="alert" class="alert alert-danger" th:if="${votingSession.episode == null}">
+    <div class="alert alert-danger" th:if="${votingSession.episode == null}">
         This session isn't linked to an episode (it may have been deleted). You can still open/close it below,
         but consider deleting it and creating a new session instead.
     </div>

@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface JudgeRepository extends JpaRepository<Judge, Long> {
@@ -17,6 +18,10 @@ public interface JudgeRepository extends JpaRepository<Judge, Long> {
     Optional<Judge> findByEmailIgnoreCaseAndDeletedFalse(String email);
 
     boolean existsByEmailIgnoreCaseAndDeletedFalse(String email);
+
+    List<Judge> findByStatusAndDeletedFalseOrderByFullNameAsc(JudgeStatus status);
+
+    List<Judge> findByDeletedFalseOrderByFullNameAsc();
 
     @Query("SELECT j FROM Judge j WHERE j.deleted = false " +
            "AND (:keyword IS NULL OR LOWER(j.fullName) LIKE LOWER(CONCAT('%', :keyword, '%')) " +

@@ -1,7 +1,9 @@
 package com.slit.realityvote.controller;
 
 import com.slit.realityvote.entity.User;
+import com.slit.realityvote.entity.VotingSession;
 import com.slit.realityvote.entity.VotingSessionStatus;
+import com.slit.realityvote.service.AdvertisementService;
 import com.slit.realityvote.service.AuthBridgeService;
 import com.slit.realityvote.service.VoteService;
 import com.slit.realityvote.service.VotingSessionService;
@@ -12,12 +14,11 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.List;
+
 /**
- * Viewer-facing voting flow: see sessions currently OPEN, cast a vote,
- * watch live results, view personal voting history.
- *
- * The current user's `users` table row is resolved via AuthBridgeService
- * (see that class for why a bridge is needed at all).
+ * Viewer-facing voting flow: see open sessions, view live results, cast vote.
+ * Displays approved/active sponsored advertisements for the relevant voting session.
  */
 @Controller
 @RequestMapping("/vote")
@@ -27,10 +28,13 @@ public class VoteController {
     private final VoteService voteService;
     private final VotingSessionService sessionService;
     private final AuthBridgeService authBridgeService;
+    private final AdvertisementService advertisementService;
 
     @GetMapping
     public String openSessions(Model model) {
-        model.addAttribute("sessions", sessionService.getSessionsByStatus(VotingSessionStatus.OPEN));
+        List<VotingSession> openSessions = sessionService.getSessionsByStatus(VotingSessionStatus.OPEN);
+        model.addAttribute("sessions", openSessions);
+        model.addAttribute("featuredAds", advertisementService.getAdsForOpenSessions());
         return "vote/sessions";
     }
 
@@ -38,6 +42,7 @@ public class VoteController {
     public String votingPage(@PathVariable Long sessionId, Model model) {
         model.addAttribute("votingSession", sessionService.getById(sessionId));
         model.addAttribute("results", voteService.getLiveResults(sessionId));
+        model.addAttribute("advertisements", advertisementService.getActiveAdsForSession(sessionId));
         return "vote/cast";
     }
 

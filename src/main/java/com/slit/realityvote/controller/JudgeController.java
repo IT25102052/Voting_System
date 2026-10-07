@@ -23,12 +23,12 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.List;
+
 /**
  * Judge & Panel Management (administrator side): maintaining judge
  * profiles and assigning them onto judging panels for shows, seasons,
- * and episodes. Access is restricted to ADMINISTRATOR (see
- * SecurityConfig) - judges themselves use the separate /judge/scores
- * area (ScoreController) to do their scoring work.
+ * and episodes.
  */
 @Controller
 @RequestMapping("/admin/judges")
@@ -84,24 +84,19 @@ public class JudgeController {
         try {
             Judge saved = judgeService.createJudge(judge, photo);
 
-            // Optional one-step login creation: the same "Add Judge" form
-            // can immediately give this person a JUDGE account so they can
-            // sign in and score - no separate admin step required, unlike
-            // before when only the seeded Demo Judge could actually log in.
             if (loginPassword != null && !loginPassword.isBlank()) {
                 try {
                     userService.createStaffAccount(saved.getFullName(), saved.getEmail(), loginPassword, Role.JUDGE);
                     redirectAttributes.addFlashAttribute("successMessage",
-                            "Judge added and login created - they can sign in with " + saved.getEmail() + " now.");
+                            "Judge added and login created - sign in with " + saved.getEmail() + ".");
                 } catch (IllegalArgumentException loginEx) {
                     redirectAttributes.addFlashAttribute("successMessage", "Judge added successfully.");
                     redirectAttributes.addFlashAttribute("errorMessage",
-                            "Judge profile saved, but login wasn't created: " + loginEx.getMessage()
-                                    + " Use \"Create Login\" on the judge's page instead.");
+                            "Judge profile saved, but login wasn't created: " + loginEx.getMessage());
                 }
             } else {
                 redirectAttributes.addFlashAttribute("successMessage",
-                        "Judge added successfully. No login was created yet - use \"Create Login\" on the judge's page so they can sign in.");
+                        "Judge added successfully. Use 'Create Login' on their page to grant access.");
             }
             return "redirect:/admin/judges";
         } catch (IllegalArgumentException ex) {
@@ -142,7 +137,7 @@ public class JudgeController {
         }
     }
 
-    // VIEW single judge + their panel assignments
+    // VIEW single judge + panel assignments
     @GetMapping("/{id}")
     public String view(@PathVariable Long id, Model model) {
         Judge judge = judgeService.getById(id);
@@ -153,9 +148,7 @@ public class JudgeController {
         return "judges/view";
     }
 
-    // Creates the JUDGE login account for an existing judge profile that
-    // doesn't have one yet (e.g. added before a password was set, or
-    // added by an earlier version of this form).
+    // Create JUDGE login account
     @PostMapping("/{id}/create-login")
     public String createLogin(@PathVariable Long id,
                               @RequestParam String loginPassword,
@@ -189,12 +182,10 @@ public class JudgeController {
         return "redirect:/admin/judges";
     }
 
-    // AJAX: populate the season + episode dropdowns once a show is chosen
-    // on the assign-panel form. Returns plain DTOs (not entities) so we
-    // never need to worry about serializing lazy Hibernate proxies.
+    // AJAX: populate season + episode dropdowns once a show is chosen
     @GetMapping("/seasons-by-show")
     @ResponseBody
-    public java.util.List<SeasonOptionView> seasonsByShow(@RequestParam Long showId) {
+    public List<SeasonOptionView> seasonsByShow(@RequestParam Long showId) {
         return seasonRepository.findByShowIdOrderBySeasonNumberAsc(showId).stream()
                 .map(s -> new SeasonOptionView(s.getId(), s.getSeasonNumber(),
                         s.getEpisodes().stream()
@@ -203,7 +194,7 @@ public class JudgeController {
                 .toList();
     }
 
-    // ---- Panel assignment ----
+    // ---- Panel assignment from Judge Profile ----
 
     @PostMapping("/{id}/assign")
     public String assignToPanel(@PathVariable Long id,
@@ -214,7 +205,7 @@ public class JudgeController {
                                 RedirectAttributes redirectAttributes) {
         try {
             assignmentService.assignJudge(id, showId, seasonId, episodeId, panelName);
-            redirectAttributes.addFlashAttribute("successMessage", "Judge assigned to panel.");
+            redirectAttributes.addFlashAttribute("successMessage", "Judge assigned to panel successfully.");
         } catch (IllegalArgumentException ex) {
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
         }
@@ -229,8 +220,34 @@ public class JudgeController {
         return "redirect:/admin/judges/" + id;
     }
 
-    // Open/close the judging window for one episode - the "designated
-    // judging period" scores can only be submitted/revised in.
+    // ---- Panel assignment from Panels Overview page ----
+
+    @PostMapping("/assign")
+    public String assignFromPanels(@RequestParam Long judgeId,
+                                   @RequestParam Long showId,
+                                   @RequestParam(required = false) Long seasonId,
+                                   @RequestParam(required = false) Long episodeId,
+                                   @RequestParam String panelName,
+                                   RedirectAttributes redirectAttributes) {
+        try {
+            assignmentService.assignJudge(judgeId, showId, seasonId, episodeId, panelName);
+            redirectAttributes.addFlashAttribute("successMessage", "Judge assigned to panel successfully.");
+        } catch (IllegalArgumentException ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+        }
+        return "redirect:/admin/judges/panels?showId=" + showId;
+    }
+
+    @PostMapping("/assignments/{assignmentId}/remove")
+    public String removeAssignmentFromPanels(@PathVariable Long assignmentId,
+                                            @RequestParam(required = false) Long showId,
+                                            RedirectAttributes redirectAttributes) {
+        assignmentService.removeAssignment(assignmentId);
+        redirectAttributes.addFlashAttribute("successMessage", "Panel assignment removed.");
+        return "redirect:/admin/judges/panels" + (showId != null ? "?showId=" + showId : "");
+    }
+
+    // Open/close judging window for an episode
     @PostMapping("/episodes/{episodeId}/judging-window")
     public String toggleJudgingWindow(@PathVariable Long episodeId,
                                       @RequestParam boolean open,
@@ -245,12 +262,11 @@ public class JudgeController {
         return "redirect:/admin/judges/panels?showId=" + showId;
     }
 
-    // Panels overview for one show: every assignment + a quick toggle for
-    // each episode's judging window, so the admin doesn't need to leave
-    // the Judge module to control scoring periods.
+    // Panels overview
     @GetMapping("/panels")
     public String panelsForShow(@RequestParam(required = false) Long showId, Model model) {
         model.addAttribute("shows", showService.getAllActiveShows());
+        model.addAttribute("allJudges", judgeService.getAllActiveJudges());
         model.addAttribute("selectedShowId", showId);
         if (showId != null) {
             model.addAttribute("selectedShow", showService.getShowById(showId));
@@ -259,8 +275,7 @@ public class JudgeController {
         return "judges/panels";
     }
 
-    // Small inline DTOs for the seasons-by-show AJAX response
-    public record SeasonOptionView(Long id, Integer seasonNumber, java.util.List<EpisodeOptionView> episodes) {
+    public record SeasonOptionView(Long id, Integer seasonNumber, List<EpisodeOptionView> episodes) {
     }
 
     public record EpisodeOptionView(Long id, Integer episodeNumber, String title) {

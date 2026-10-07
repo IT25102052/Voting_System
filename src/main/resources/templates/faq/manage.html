@@ -10,7 +10,7 @@
         <a class="btn btn-accent" th:href="@{/staff/faqs/new}"><i class="fa-solid fa-plus"></i> Add FAQ</a>
     </div>
 
-    <div role="alert" class="alert alert-success" th:if="${successMessage}" th:text="${successMessage}"></div>
+    <div class="alert alert-success" th:if="${successMessage}" th:text="${successMessage}"></div>
 
     <div class="rv-card text-center py-5" th:if="${#lists.isEmpty(faqs)}">
         <p class="text-muted mb-0">No FAQs yet.</p>

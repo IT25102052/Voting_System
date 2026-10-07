@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Review Advertisement')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+<div class="rv-page" style="max-width:880px">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h2 class="rv-page-title mb-0 d-flex align-items-center gap-2">
+                <span th:replace="~{fragments/heroicons :: scale('heroicon-md')}"></span> Review Advertisement
+            </h2>
+            <span class="text-muted small">Compliance Evaluation &amp; Broadcast Authorization</span>
+        </div>
+        <a th:href="@{/compliance/advertising}" class="btn btn-sm btn-outline-dark d-inline-flex align-items-center gap-1">
+            <span th:replace="~{fragments/heroicons :: arrowLeft('heroicon-sm')}"></span> Back to Queue
+        </a>
+    </div>
+
+    <div th:if="${success}" class="alert alert-success alert-dismissible fade show"><span th:text="${success}"></span><button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show"><span th:text="${error}"></span><button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+
+    <!-- Ad content Preview Card -->
+    <div class="rv-card mb-3">
+        <div class="d-flex justify-content-between align-items-start mb-3">
+            <div>
+                <h4 class="mb-1" th:text="${advertisement.title}"></h4>
+                <span class="status-badge rv-mono" th:classappend="'status-' + ${advertisement.status}" th:text="${advertisement.status}"></span>
+                <span class="rv-mono small text-muted ms-2">Ad ID: #<span th:text="${advertisement.id}"></span></span>
+            </div>
+            <div class="rv-mono small text-muted text-end">
+                Campaign: <strong th:text="${campaign.name}"></strong><br>
+                Submitted by: <strong th:text="${advertisement.createdBy.fullName}"></strong> (<span th:text="${advertisement.createdBy.email}"></span>)
+            </div>
+        </div>
+
+        <div class="p-3 mb-3" style="background:var(--rv-ink);border-radius:8px;border:1px solid var(--rv-border)">
+            <div class="rv-mono small mb-1" style="color:var(--rv-text-muted)">AD COPY / PROMOTIONAL MESSAGE</div>
+            <div style="white-space:pre-wrap; line-height:1.6;" th:text="${advertisement.content}"></div>
+        </div>
+
+        <div th:if="${advertisement.targetUrl}" class="mb-3 p-2 px-3" style="background:rgba(0,188,212,0.06);border-radius:6px;border:1px solid rgba(0,188,212,0.25);">
+            <div class="rv-mono small d-flex align-items-center gap-1" style="color:var(--rv-cyan);">
+                <span th:replace="~{fragments/heroicons :: arrowTopRightOnSquare('heroicon-sm')}"></span> SPONSOR TARGET LINK
+            </div>
+            <a th:href="${advertisement.targetUrl}" target="_blank" rel="noopener noreferrer" th:text="${advertisement.targetUrl}" class="small text-light"></a>
+        </div>
+
+        <div th:if="${advertisement.imageUrl}" class="mb-3">
+            <div class="rv-mono small mb-1" style="color:var(--rv-text-muted)">IMAGE ATTACHMENT</div>
+            <img th:src="${advertisement.imageUrl}" alt="Ad image" style="max-width:100%;max-height:260px;border-radius:8px;border:1px solid var(--rv-border)">
+        </div>
+
+        <div class="rv-mono small text-muted">
+            Submitted: <span th:text="${#temporals.format(advertisement.createdDate, 'dd MMM yyyy HH:mm')}"></span>
+        </div>
+    </div>
+
+    <!-- Self-review warning -->
+    <div th:if="${isSelfReview}" class="alert alert-warning d-flex align-items-center gap-2">
+        <span th:replace="~{fragments/heroicons :: exclamationTriangle('heroicon-md text-warning flex-shrink-0')}"></span>
+        <div>
+            <strong>Separation of Duty Enforced:</strong> You created this advertisement and cannot approve or reject it.
+            Another Compliance Officer or Administrator must perform the compliance review.
+        </div>
+    </div>
+
+    <!-- Decision & Session Confirmation Form -->
+    <div th:if="${advertisement.status.name() == 'PENDING_REVIEW' and !isSelfReview}" class="rv-card mb-3">
+        <h5 class="rv-page-title mb-3 d-flex align-items-center gap-2">
+            <span th:replace="~{fragments/heroicons :: clipboardDocumentCheck('heroicon-sm')}"></span> Compliance Decision &amp; Session Authorization
+        </h5>
+
+        <div class="mb-3">
+            <label class="form-label rv-mono small">COMPLIANCE REVIEW COMMENT / REASON</label>
+            <textarea id="reviewComment" class="form-control" rows="2" placeholder="Required for rejection, optional for approval…"></textarea>
+        </div>
+
+        <!-- Target Voting Sessions Selection -->
+        <div class="mb-4">
+            <label class="form-label rv-mono small mb-1 d-flex align-items-center gap-1">
+                <span th:replace="~{fragments/heroicons :: tv('heroicon-sm')}"></span> AUTHORIZE VOTING SESSIONS
+            </label>
+            <div class="text-muted small mb-2">Confirm which voting sessions are authorized to display this advertisement to viewers:</div>
+
+            <div class="table-responsive" style="max-height:220px; overflow-y:auto; border:1px solid var(--rv-border); border-radius:8px;">
+                <table class="table table-sm table-hover mb-0">
+                    <thead style="position:sticky; top:0; background:var(--rv-card-bg); z-index:1;">
+                    <tr class="rv-mono" style="font-size:.72rem;color:var(--rv-text-muted)">
+                        <th style="width:36px"></th>
+                        <th>#</th>
+                        <th>SHOW / EPISODE</th>
+                        <th>SESSION STATUS</th>
+                        <th>TIME WINDOW</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="s : ${allSessions}">
+                        <td>
+                            <input type="checkbox" class="form-check-input session-checkbox" th:value="${s.id}"
+                                   th:checked="${#lists.contains(assignedIds, s.id)}">
+                        </td>
+                        <td class="rv-mono">#<span th:text="${s.id}"></span></td>
+                        <td class="small">
+                            <strong th:text="${s.episode.season.show.name}"></strong>
+                            S<span th:text="${s.episode.season.seasonNumber}"></span>
+                            E<span th:text="${s.episode.episodeNumber}"></span>:
+                            <span th:text="${s.episode.title}"></span>
+                        </td>
+                        <td><span class="status-badge rv-mono" th:classappend="'status-' + ${s.status}" th:text="${s.status}"></span></td>
+                        <td class="rv-mono small text-muted">
+                            <span th:text="${#temporals.format(s.startTime, 'dd MMM HH:mm')}"></span> &rarr;
+                            <span th:text="${#temporals.format(s.endTime, 'dd MMM HH:mm')}"></span>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(allSessions)}">
+                        <td colspan="5" class="text-center text-muted py-3">No voting sessions found.</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Optional Display Window -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-6">
+                <label class="form-label rv-mono small">DISPLAY WINDOW START (Optional)</label>
+                <input type="datetime-local" id="windowStart" class="form-control form-control-sm"
+                       th:value="${advertisement.displayStartTime != null ? #temporals.format(advertisement.displayStartTime, 'yyyy-MM-dd''T''HH:mm') : ''}">
+                <small class="text-muted">Leave empty to display immediately upon approval</small>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label rv-mono small">DISPLAY WINDOW END (Optional)</label>
+                <input type="datetime-local" id="windowEnd" class="form-control form-control-sm"
+                       th:value="${advertisement.displayEndTime != null ? #temporals.format(advertisement.displayEndTime, 'yyyy-MM-dd''T''HH:mm') : ''}">
+                <small class="text-muted">Leave empty for continuous display</small>
+            </div>
+        </div>
+
+        <div class="d-flex gap-2">
+            <!-- Approve Form -->
+            <form id="approveForm" th:action="@{/compliance/advertising/{id}/approve(id=${advertisement.id})}" method="post" class="d-inline">
+                <input type="hidden" name="comment" id="approveComment">
+                <input type="hidden" name="displayStartTime" id="approveStart">
+                <input type="hidden" name="displayEndTime" id="approveEnd">
+                <div id="approveSessionInputs"></div>
+                <button type="button" class="btn btn-accent d-inline-flex align-items-center gap-1" onclick="submitApprove()">
+                    <span th:replace="~{fragments/heroicons :: checkCircle('heroicon-sm')}"></span> Approve &amp; Broadcast in Selected Sessions
+                </button>
+            </form>
+
+            <!-- Reject Form -->
+            <form id="rejectForm" th:action="@{/compliance/advertising/{id}/reject(id=${advertisement.id})}" method="post" class="d-inline">
+                <input type="hidden" name="comment" id="rejectComment">
+                <button type="button" class="btn btn-outline-danger d-inline-flex align-items-center gap-1" onclick="submitReject()">
+                    <span th:replace="~{fragments/heroicons :: xCircle('heroicon-sm')}"></span> Reject with Reason
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Already reviewed info -->
+    <div th:if="${advertisement.status.name() != 'PENDING_REVIEW' and advertisement.reviewedBy != null}" class="rv-card mb-3">
+        <div class="rv-mono small mb-1" style="color:var(--rv-text-muted)">COMPLIANCE AUDIT DECISION</div>
+        <strong th:text="${advertisement.status.name() == 'REJECTED' ? 'Rejected' : 'Approved'}"></strong>
+        by <span th:text="${advertisement.reviewedBy.fullName}"></span>
+        on <span class="rv-mono small" th:text="${#temporals.format(advertisement.reviewedAt, 'dd MMM yyyy HH:mm')}"></span>
+        <div th:if="${advertisement.complianceComment}" class="mt-2 text-muted" th:text="${advertisement.complianceComment}"></div>
+    </div>
+
+    <!-- Schedule summary -->
+    <div th:if="${advertisement.status.name() == 'APPROVED' or advertisement.status.name() == 'ACTIVE'}" class="rv-card mb-3">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+            <h5 class="rv-page-title mb-0 d-flex align-items-center gap-2">
+                <span th:replace="~{fragments/heroicons :: calendarDays('heroicon-sm')}"></span> Display Schedule &amp; Authorized Sessions
+            </h5>
+            <a th:href="@{/compliance/advertising/{id}/schedule(id=${advertisement.id})}" class="btn btn-sm btn-accent d-inline-flex align-items-center gap-1">
+                <span th:replace="~{fragments/heroicons :: pencil('heroicon-sm')}"></span> Edit Schedule
+            </a>
+        </div>
+
+        <div th:if="${#lists.isEmpty(advertisement.sessions)}" class="text-muted small d-flex align-items-center gap-1">
+            <span th:replace="~{fragments/heroicons :: informationCircle('heroicon-sm')}"></span> Not currently assigned to any sessions. Click "Edit Schedule" to assign.
+        </div>
+        <div th:unless="${#lists.isEmpty(advertisement.sessions)}">
+            <div class="rv-mono small mb-2" style="color:var(--rv-gold)">ACTIVE IN SESSIONS:</div>
+            <div class="d-flex flex-wrap gap-2 mb-3">
+                <span th:each="s : ${advertisement.sessions}" class="badge" style="background:var(--rv-ink);border:1px solid var(--rv-border);color:var(--rv-text);padding:8px 12px;">
+                    #<span th:text="${s.id}"></span> &middot;
+                    <span th:text="${s.episode.season.show.name}"></span>
+                    (S<span th:text="${s.episode.season.seasonNumber}"></span>E<span th:text="${s.episode.episodeNumber}"></span>)
+                    <span class="status-badge rv-mono ms-1" th:classappend="'status-' + ${s.status}" th:text="${s.status}"></span>
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function submitApprove() {
+    var comment = document.getElementById('reviewComment').value;
+    document.getElementById('approveComment').value = comment;
+    document.getElementById('approveStart').value = document.getElementById('windowStart').value;
+    document.getElementById('approveEnd').value = document.getElementById('windowEnd').value;
+
+    var container = document.getElementById('approveSessionInputs');
+    container.innerHTML = '';
+    var checkboxes = document.querySelectorAll('.session-checkbox:checked');
+    checkboxes.forEach(function(cb) {
+        var input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'sessionIds';
+        input.value = cb.value;
+        container.appendChild(input);
+    });
+
+    document.getElementById('approveForm').submit();
+}
+
+function submitReject() {
+    var comment = document.getElementById('reviewComment').value;
+    if (!comment || !comment.trim()) {
+        alert('A rejection reason is required.');
+        return;
+    }
+    document.getElementById('rejectComment').value = comment;
+    document.getElementById('rejectForm').submit();
+}
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

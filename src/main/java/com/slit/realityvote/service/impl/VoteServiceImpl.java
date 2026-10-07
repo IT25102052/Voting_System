@@ -7,6 +7,7 @@ import com.slit.realityvote.repository.UserRepository;
 import com.slit.realityvote.repository.VoteRepository;
 import com.slit.realityvote.repository.VotingSessionRepository;
 import com.slit.realityvote.service.AuditLogService;
+import com.slit.realityvote.service.ComplianceReportRecordService;
 import com.slit.realityvote.service.VoteService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +29,7 @@ public class VoteServiceImpl implements VoteService {
     private final ContestantRepository contestantRepository;
     private final UserRepository userRepository;
     private final AuditLogService auditLogService;
+    private final ComplianceReportRecordService reportRecordService;
 
     @Override
     @Transactional
@@ -43,12 +45,14 @@ public class VoteServiceImpl implements VoteService {
             auditLogService.record(AuditEventType.VOTE_REJECTED,
                     "Vote rejected: session " + sessionId + " is not OPEN (status=" + session.getStatus() + ")",
                     actorEmail);
+            refreshActivitySnapshot(sessionId);
             throw new IllegalStateException("This voting session is not currently open for voting.");
         }
         LocalDateTime now = LocalDateTime.now();
         if (now.isBefore(session.getStartTime()) || now.isAfter(session.getEndTime())) {
             auditLogService.record(AuditEventType.VOTE_REJECTED,
                     "Vote rejected: outside voting window for session " + sessionId, actorEmail);
+            refreshActivitySnapshot(sessionId);
             throw new IllegalStateException("This voting session is outside its scheduled voting window.");
         }
 
@@ -62,6 +66,7 @@ public class VoteServiceImpl implements VoteService {
         if (!eligible) {
             auditLogService.record(AuditEventType.VOTE_REJECTED,
                     "Vote rejected: contestant " + contestantId + " not eligible for session " + sessionId, actorEmail);
+            refreshActivitySnapshot(sessionId);
             throw new IllegalStateException("This contestant is not part of the selected voting session.");
         }
 
@@ -75,6 +80,7 @@ public class VoteServiceImpl implements VoteService {
             auditLogService.record(AuditEventType.VOTE_REJECTED,
                     "Vote rejected: duplicate vote attempt for contestant " + contestantId + " in session " + sessionId,
                     actorEmail);
+            refreshActivitySnapshot(sessionId);
             throw new IllegalStateException("You have already voted for this contestant in this session.");
         }
 
@@ -87,7 +93,13 @@ public class VoteServiceImpl implements VoteService {
         Vote saved = voteRepository.save(vote);
         auditLogService.record(AuditEventType.VOTE_CAST,
                 "Vote cast for contestant " + contestantId + " in session " + sessionId, actorEmail);
+        refreshActivitySnapshot(sessionId);
         return saved;
+    }
+
+    /** Persist latest vote tallies to the compliance activity snapshot table. */
+    private void refreshActivitySnapshot(Long sessionId) {
+        reportRecordService.refreshAutoSnapshot(sessionId);
     }
 
     @Override

@@ -6,50 +6,81 @@
 
 <div class="on-air-strip"><span class="dot"></span> Voting is open — every vote updates the scoreboard live</div>
 
-<div class="rv-page" style="max-width:800px">
+<div class="rv-page" style="max-width:860px">
     <a class="btn btn-sm btn-outline-secondary mb-3" th:href="@{/vote}">&larr; Back to Open Sessions</a>
 
-    <div role="alert" class="alert alert-success" th:if="${successMessage}" th:text="${successMessage}"></div>
-    <div role="alert" class="alert alert-danger" th:if="${errorMessage}" th:text="${errorMessage}"></div>
+    <div class="alert alert-success" th:if="${successMessage}" th:text="${successMessage}"></div>
+    <div class="alert alert-danger" th:if="${errorMessage}" th:text="${errorMessage}"></div>
 
-    <h4 class="rv-page-title mb-1"
-        th:text="${votingSession.episode.season.show.name} + ' — Ep. ' + ${votingSession.episode.episodeNumber} + ': ' + ${votingSession.episode.title}">
-        Show / Episode
-    </h4>
-    <p class="text-muted mb-3 rv-mono" style="font-size:.85rem;">Voting closes <span th:text="${votingSession.endTime}"></span></p>
+    <div class="d-flex align-items-center justify-content-between mb-2">
+        <h4 class="rv-page-title mb-0"
+            th:text="${votingSession.episode.season.show.name} + ' — Ep. ' + ${votingSession.episode.episodeNumber} + ': ' + ${votingSession.episode.title}">
+            Show / Episode
+        </h4>
+        <span class="status-badge rv-mono status-OPEN">LIVE POLLS</span>
+    </div>
+    <p class="text-muted mb-4 rv-mono" style="font-size:.85rem;">Voting closes <span th:text="${votingSession.endTime}"></span></p>
 
-    <div class="rv-card text-center mb-4" th:if="${votingSession.endTime}">
-        <div class="pass-label mb-2">Voting closes in</div>
-        <div class="rv-countdown" id="rv-countdown"
-             th:data-end="${votingSession.endTime}" th:data-start="${votingSession.startTime}">
-            <div class="seg"><div class="num" data-d>00</div><div class="unit">Days</div></div>
-            <div class="seg"><div class="num" data-h>00</div><div class="unit">Hrs</div></div>
-            <div class="seg"><div class="num" data-m>00</div><div class="unit">Min</div></div>
-            <div class="seg"><div class="num" data-s>00</div><div class="unit">Sec</div></div>
-        </div>
-        <div class="rv-countdown-track" role="progressbar" aria-label="Time remaining" aria-valuemin="0" aria-valuemax="100">
-            <div class="rv-countdown-fill" id="rv-countdown-fill" style="width:100%"></div>
+    <!-- ═══ Sponsored Advertisements on Viewer Side ═══ -->
+    <div th:if="${advertisements != null and !advertisements.isEmpty()}" class="mb-4">
+        <div th:each="ad : ${advertisements}">
+            <div class="rv-card mb-3" style="border: 1px solid rgba(255, 200, 87, 0.35); background: linear-gradient(135deg, rgba(255, 200, 87, 0.08) 0%, rgba(20, 23, 34, 0.95) 100%); box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);">
+                <div class="d-flex flex-column flex-md-row align-items-start gap-3">
+                    <!-- Image if present -->
+                    <div th:if="${ad.imageUrl}" style="flex-shrink:0;">
+                        <img th:src="${ad.imageUrl}" alt="Official Sponsor"
+                             style="width:110px; height:110px; object-fit:cover; border-radius:10px; border:1px solid rgba(255,200,87,0.3);">
+                    </div>
+                    <!-- Ad Body -->
+                    <div style="flex:1;">
+                        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge" style="background:var(--rv-gold); color:#0e1017; font-weight:700; letter-spacing:0.8px; font-size:0.7rem;">
+                                    <i class="fa-solid fa-rectangle-ad me-1"></i> OFFICIAL SPONSOR
+                                </span>
+                                <span class="rv-mono text-muted small" th:if="${ad.campaign != null}">
+                                    <i class="fa-solid fa-bullhorn me-1"></i><span th:text="${ad.campaign.name}"></span>
+                                </span>
+                            </div>
+                            <!-- Target CTA Link if present -->
+                            <div th:if="${ad.targetUrl}">
+                                <a th:href="${ad.targetUrl}" target="_blank" rel="noopener noreferrer"
+                                   class="btn btn-sm btn-outline-warning" style="font-size:0.75rem; padding:3px 10px;">
+                                    Visit Sponsor <i class="fa-solid fa-arrow-up-right-from-square ms-1"></i>
+                                </a>
+                            </div>
+                        </div>
+                        <h5 class="mb-1" style="color:var(--rv-gold); font-weight:600;" th:text="${ad.title}">Ad Title</h5>
+                        <p class="text-muted mb-0" style="white-space:pre-line; font-size:0.92rem; line-height:1.5;" th:text="${ad.content}">Ad Content</p>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
+    <!-- ═══ Broadcast Contestant Cards (Flowbite Pattern) ═══ -->
     <div class="row g-3 mb-4">
         <div class="col-md-6" th:each="c : ${votingSession.contestants}">
-            <div class="show-card js-vote-card d-flex justify-content-between align-items-center h-100">
-                <div class="d-flex align-items-center gap-3">
-                    <img th:if="${c.photoPath}" th:src="@{'/uploads/' + ${c.photoPath}}" loading="lazy"
-                         style="width:56px;height:56px;object-fit:cover;border-radius:12px" alt="">
+            <div class="contestant-broadcast-card h-100 p-3 d-flex flex-column justify-content-between">
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <img th:if="${c.photoPath}" th:src="@{'/uploads/' + ${c.photoPath}}"
+                         style="width:68px;height:68px;object-fit:cover;border-radius:10px;border:1px solid var(--rv-border);" alt="">
                     <div th:unless="${c.photoPath}"
-                         style="width:56px;height:56px;border-radius:12px;" class="rv-avatar-placeholder">
-                        <i class="fa-solid fa-user"></i>
+                         style="width:68px;height:68px;border-radius:10px;background:var(--rv-navy-3);display:flex;align-items:center;justify-content:center;border:1px solid var(--rv-border);">
+                        <i class="fa-solid fa-user fa-lg" style="color:var(--rv-text-muted);"></i>
                     </div>
-                    <div>
-                        <div class="fw-semibold" th:text="${c.fullName}">Name</div>
-                        <small class="text-muted rv-mono" th:text="'#' + ${c.id} + ' · ' + ${c.talentCategory}"></small>
+                    <div class="flex-grow-1">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <span class="flowbite-badge flowbite-badge-info" th:text="${c.talentCategory ?: 'Contestant'}">Category</span>
+                            <span class="rv-mono small text-muted" th:text="'#' + ${c.id}">#1</span>
+                        </div>
+                        <h6 class="fw-bold mb-0 mt-1" style="font-size:1.05rem;" th:text="${c.fullName}">Name</h6>
+                        <small class="text-muted" th:text="${c.hometown ?: 'Broadcast Finalist'}"></small>
                     </div>
                 </div>
-                <form method="post" class="js-vote-form" th:action="@{'/vote/' + ${votingSession.id} + '/contestants/' + ${c.id}}">
-                    <button class="btn btn-sm btn-accent" type="submit" th:aria-label="'Vote for ' + ${c.fullName}">
-                        <i class="fa-solid fa-check-to-slot"></i> Vote
+                <form method="post" th:action="@{'/vote/' + ${votingSession.id} + '/contestants/' + ${c.id}}">
+                    <button class="btn btn-accent w-100 py-2 d-flex align-items-center justify-content-center gap-2 fw-semibold" type="submit">
+                        <i class="fa-solid fa-check-to-slot"></i> Cast Official Vote
                     </button>
                 </form>
             </div>
@@ -61,44 +92,5 @@
         <div th:replace="~{voting-sessions/_results :: results}"></div>
     </div>
 </div>
-
-<script th:inline="javascript">
-(function () {
-    var el = document.getElementById('rv-countdown');
-    if (!el) return;
-    var end = new Date(el.getAttribute('data-end'));
-    var startAttr = el.getAttribute('data-start');
-    var start = startAttr ? new Date(startAttr) : null;
-    if (isNaN(end.getTime())) return;
-    var totalSpan = (start && !isNaN(start.getTime())) ? (end.getTime() - start.getTime()) : null;
-    var dEl = el.querySelector('[data-d]'), hEl = el.querySelector('[data-h]'),
-        mEl = el.querySelector('[data-m]'), sEl = el.querySelector('[data-s]');
-    var fill = document.getElementById('rv-countdown-fill');
-    var track = fill ? fill.parentElement : null;
-    function pad(n) { return String(n).padStart(2, '0'); }
-    function tick() {
-        var diff = end.getTime() - Date.now();
-        if (diff <= 0) {
-            dEl.textContent = hEl.textContent = mEl.textContent = sEl.textContent = '00';
-            if (fill) fill.style.width = '0%';
-            clearInterval(timer);
-            return;
-        }
-        var totalSec = Math.floor(diff / 1000);
-        var d = Math.floor(totalSec / 86400);
-        var h = Math.floor((totalSec % 86400) / 3600);
-        var m = Math.floor((totalSec % 3600) / 60);
-        var s = totalSec % 60;
-        dEl.textContent = pad(d); hEl.textContent = pad(h); mEl.textContent = pad(m); sEl.textContent = pad(s);
-        if (fill && totalSpan) {
-            var pct = Math.max(0, Math.min(100, (diff / totalSpan) * 100));
-            fill.style.width = pct + '%';
-            if (track) track.setAttribute('aria-valuenow', Math.round(pct));
-        }
-    }
-    tick();
-    var timer = setInterval(tick, 1000);
-})();
-</script>
 </body>
 </html>

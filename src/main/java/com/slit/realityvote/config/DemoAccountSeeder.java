@@ -40,6 +40,7 @@ public class DemoAccountSeeder implements CommandLineRunner {
         seed("Reporting Manager", "reports@realityvote.lk", "Reports@123", Role.REPORTING_MANAGER);
         seed("Support Staff", "support@realityvote.lk", "Support@123", Role.SUPPORT_STAFF);
         seed("Demo Judge", "judge@realityvote.lk", "Judge@123", Role.JUDGE);
+        seed("Marketing Officer", "marketing@realityvote.lk", "Marketing@123", Role.MARKETING_OFFICER);
         seedJudgeProfile("Demo Judge", "judge@realityvote.lk");
     }
 

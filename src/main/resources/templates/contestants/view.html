@@ -7,25 +7,19 @@
 <div class="rv-page" style="max-width:700px">
     <a class="btn btn-sm btn-outline-secondary mb-3" th:href="@{/staff/contestants}">&larr; Back to Contestants</a>
 
-    <div role="alert" class="alert alert-success" th:if="${successMessage}" th:text="${successMessage}"></div>
+    <div class="alert alert-success" th:if="${successMessage}" th:text="${successMessage}"></div>
 
     <div class="rv-card">
         <div class="d-flex gap-4">
             <img th:if="${contestant.photoPath}" th:src="@{'/uploads/' + ${contestant.photoPath}}"
                  style="width:120px;height:120px;object-fit:cover;border-radius:16px" alt="">
             <div th:unless="${contestant.photoPath}"
-                 style="width:120px;height:120px;border-radius:16px;" class="rv-avatar-placeholder">
-                <i class="fa-solid fa-user fa-2x"></i>
+                 style="width:120px;height:120px;border-radius:16px;background:#ece9f7;display:flex;align-items:center;justify-content:center">
+                <i class="fa-solid fa-user fa-2x" style="color:#5a5e6a"></i>
             </div>
             <div>
                 <h3 class="rv-page-title mb-1" th:text="${contestant.fullName}">Name</h3>
-                <div class="d-flex align-items-center gap-2 flex-wrap">
-                    <span class="status-badge" th:classappend="'status-' + ${contestant.status}" th:text="${contestant.status}"></span>
-                    <span class="status-badge status-ACTIVE" th:if="${currentRank != null}">
-                        <i class="fa-solid fa-ranking-star"></i>
-                        Rank <span th:text="${currentRank}"></span> of <span th:text="${totalInShow}"></span>
-                    </span>
-                </div>
+                <span class="status-badge" th:classappend="'status-' + ${contestant.status}" th:text="${contestant.status}"></span>
                 <p class="text-muted mb-1 mt-2">
                     <span th:text="${contestant.age}"></span> yrs &nbsp;|&nbsp;
                     <span th:text="${contestant.hometown}"></span> &nbsp;|&nbsp;
@@ -34,10 +28,6 @@
                 <small class="text-muted">
                     Show: <span th:text="${contestant.show.name}"></span>
                     <span th:if="${contestant.season != null}"> · Season <span th:text="${contestant.season.seasonNumber}"></span></span>
-                    <a class="ms-1" th:if="${currentRank != null}"
-                       th:href="@{/reports/rankings(showId=${contestant.show.id})}">
-                        <i class="fa-solid fa-arrow-up-right-from-square"></i> View full rankings
-                    </a>
                 </small>
             </div>
         </div>

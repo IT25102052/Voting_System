@@ -50,6 +50,16 @@ public class User {
     @Builder.Default
     private boolean enabled = true;
 
+    /**
+     * Compliance status managed by the Compliance Officer.
+     * Defaults to ACTIVE on registration; can be set to WARNING, FLAGGED,
+     * or SUSPENDED via the compliance monitoring dashboard.
+     */
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, columnDefinition = "VARCHAR(30) DEFAULT 'ACTIVE'")
+    @Builder.Default
+    private UserStatus status = UserStatus.ACTIVE;
+
     // ---- Audit fields ----
     @Column(updatable = false)
     private LocalDateTime createdDate;

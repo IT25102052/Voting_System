@@ -10,7 +10,7 @@
         <span th:text="${isEdit} ? 'Edit Contestant' : 'Add Contestant'"></span>
     </h2>
 
-    <div role="alert" class="alert alert-danger" th:if="${errorMessage}" th:text="${errorMessage}"></div>
+    <div class="alert alert-danger" th:if="${errorMessage}" th:text="${errorMessage}"></div>
 
     <form class="rv-card" method="post" enctype="multipart/form-data"
           th:object="${contestant}"

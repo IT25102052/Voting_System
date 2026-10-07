@@ -2,6 +2,7 @@ package com.slit.realityvote.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -18,9 +19,12 @@ import org.springframework.security.web.SecurityFilterChain;
  * /register page (RegistrationController, always Role.VIEWER); the
  * staff/admin demo accounts are inserted once at startup by
  * config/DemoAccountSeeder.java so the same demo credentials keep working.
+ *
+ * @EnableMethodSecurity — enables @PreAuthorize in controllers (Module 6.4).
  */
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 public class SecurityConfig {
 
     @Bean
@@ -33,7 +37,8 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/", "/css/**", "/js/**", "/images/**", "/login", "/register", "/error/403", "/faq").permitAll()
+                .requestMatchers("/", "/css/**", "/js/**", "/images/**", "/img/**",
+                                 "/login", "/register", "/error/403", "/faq").permitAll()
                 // Role-Based Access Control: only ADMINISTRATOR can manage shows
                 .requestMatchers("/admin/shows/**").hasRole("ADMINISTRATOR")
                 .requestMatchers("/admin/voting-sessions/**").hasRole("ADMINISTRATOR")
@@ -41,10 +46,14 @@ public class SecurityConfig {
                 .requestMatchers("/staff/contestants/**").hasAnyRole("ADMINISTRATOR", "CONTESTANT_STAFF")
                 .requestMatchers("/vote/**").hasRole("VIEWER")
                 .requestMatchers("/judge/**").hasRole("JUDGE")
-                .requestMatchers("/compliance/audit-logs/**").hasAnyRole("ADMINISTRATOR", "COMPLIANCE_OFFICER")
+                // Module 6.4: entire /compliance/** tree is guarded here;
+                // finer-grained @PreAuthorize annotations in controllers add
+                // the per-endpoint ADMINISTRATOR-only constraints (e.g. purge).
+                .requestMatchers("/compliance/**").hasAnyRole("ADMINISTRATOR", "COMPLIANCE_OFFICER")
                 .requestMatchers("/reports/**").hasAnyRole("ADMINISTRATOR", "REPORTING_MANAGER")
                 .requestMatchers("/staff/support/**", "/staff/faqs/**").hasAnyRole("ADMINISTRATOR", "SUPPORT_STAFF")
                 .requestMatchers("/support/tickets/**").hasRole("VIEWER")
+                .requestMatchers("/marketing/**").hasAnyRole("ADMINISTRATOR", "MARKETING_OFFICER")
                 .anyRequest().authenticated()
             )
             .formLogin(form -> form
@@ -63,3 +72,4 @@ public class SecurityConfig {
         return http.build();
     }
 }
+

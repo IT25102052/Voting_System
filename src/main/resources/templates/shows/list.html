@@ -14,7 +14,7 @@
     </div>
 
     <!-- Flash messages -->
-    <div role="alert" class="alert alert-success" th:if="${successMessage}" th:text="${successMessage}"></div>
+    <div class="alert alert-success" th:if="${successMessage}" th:text="${successMessage}"></div>
 
     <!-- Search -->
     <form class="rv-card mb-4 d-flex gap-2" method="get" th:action="@{/admin/shows}">
@@ -25,7 +25,7 @@
 
     <!-- Empty state -->
     <div class="rv-card text-center py-5" th:if="${#lists.isEmpty(shows)}">
-        <i class="fa-solid fa-clapperboard fa-2x mb-3 rv-empty-icon"></i>
+        <i class="fa-solid fa-clapperboard fa-2x mb-3" style="color:#4a4d58"></i>
         <p class="text-muted mb-0">No reality shows yet. Create your first one to get started.</p>
     </div>
 

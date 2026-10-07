@@ -10,8 +10,8 @@
         <div class="pass-body">
             <div class="pass-label"><i class="fa-solid fa-lock"></i> Sign In</div>
             <h4 class="rv-display mb-4" style="font-size:1.8rem;">Login</h4>
-            <div role="alert" class="alert alert-success" th:if="${successMessage}" th:text="${successMessage}"></div>
-            <div role="alert" class="alert alert-danger" th:if="${param.error}">Invalid email or password.</div>
+            <div class="alert alert-success" th:if="${successMessage}" th:text="${successMessage}"></div>
+            <div class="alert alert-danger" th:if="${param.error}">Invalid email or password.</div>
             <form method="post" th:action="@{/login}">
                 <div class="mb-3">
                     <label class="form-label" style="color:rgba(255,255,255,.85);">Email</label>

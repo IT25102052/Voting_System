@@ -6,17 +6,21 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
+
 public interface JudgeService {
 
     Page<Judge> search(String keyword, JudgeStatus status, Pageable pageable);
 
     Judge getById(Long id);
 
+    List<Judge> getAllActiveJudges();
+
     Judge createJudge(Judge judge, MultipartFile photo);
 
     Judge updateJudge(Long id, Judge updated, MultipartFile photo);
 
-    void deactivateJudge(Long id); // soft delete
+    void deactivateJudge(Long id);
 
     Judge updateStatus(Long id, JudgeStatus newStatus);
 }

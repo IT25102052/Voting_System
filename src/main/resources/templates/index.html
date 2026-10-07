@@ -9,19 +9,6 @@
 <section class="rv-hero rv-hero-photo">
     <div class="rv-hero-media" style="background-image:url('/img/hero-crowd.png')"></div>
     <div class="rv-hero-scrim"></div>
-    <div class="rv-light-streak" aria-hidden="true"></div>
-    <div class="rv-particles" aria-hidden="true">
-        <span style="left:8%; top:20%; animation-delay:0s;"></span>
-        <span style="left:18%; top:60%; animation-delay:1.2s;"></span>
-        <span style="left:32%; top:35%; animation-delay:2.4s;"></span>
-        <span style="left:47%; top:75%; animation-delay:.6s;"></span>
-        <span style="left:61%; top:15%; animation-delay:3s;"></span>
-        <span style="left:74%; top:55%; animation-delay:1.8s;"></span>
-        <span style="left:85%; top:30%; animation-delay:.9s;"></span>
-        <span style="left:92%; top:68%; animation-delay:2.1s;"></span>
-        <span style="left:22%; top:85%; animation-delay:1.5s;"></span>
-        <span style="left:55%; top:45%; animation-delay:3.4s;"></span>
-    </div>
 
     <div class="rv-hero-inner">
         <div class="rv-hero-eyebrow rv-mono"><span class="rv-hero-eyebrow-dot"></span> System Online</div>
@@ -43,6 +30,41 @@
 </section>
 
 <div class="rv-page">
+
+    <!-- Official Broadcast Partners Strip (Viewer Stakeholder) -->
+    <div th:if="${featuredAds != null and !featuredAds.isEmpty()}" class="mb-4">
+        <div class="rv-card p-3" style="border: 1px solid rgba(255, 200, 87, 0.35); background: linear-gradient(135deg, rgba(255, 200, 87, 0.08) 0%, rgba(20, 23, 34, 0.95) 100%);">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge" style="background:var(--rv-gold); color:#0e1017; font-weight:700; font-size:0.72rem;">
+                        <i class="fa-solid fa-star me-1"></i> OFFICIAL BROADCAST SPONSORS
+                    </span>
+                    <span class="rv-mono small text-muted">Powering Tonight's Live Events</span>
+                </div>
+                <a th:href="@{/vote}" class="btn btn-sm btn-outline-warning" style="font-size:0.75rem;">
+                    Vote in Sponsored Sessions &rarr;
+                </a>
+            </div>
+            <div class="row g-3 mt-1">
+                <div th:each="ad : ${featuredAds}" class="col-md-6 col-lg-4">
+                    <div class="p-3 h-100" style="background:rgba(0,0,0,0.35); border:1px solid var(--rv-border); border-radius:8px;">
+                        <div class="d-flex align-items-start gap-3">
+                            <img th:if="${ad.imageUrl}" th:src="${ad.imageUrl}" alt=""
+                                 style="width:50px; height:50px; object-fit:cover; border-radius:8px; flex-shrink:0;">
+                            <div>
+                                <strong class="d-block text-truncate" style="color:var(--rv-gold); font-size:0.95rem;" th:text="${ad.title}"></strong>
+                                <p class="text-muted small mb-2 text-truncate-2" style="font-size:0.82rem; line-height:1.4;" th:text="${ad.content}"></p>
+                                <a th:if="${ad.targetUrl}" th:href="${ad.targetUrl}" target="_blank" rel="noopener noreferrer"
+                                   class="text-info small text-decoration-none">
+                                    Visit Sponsor <i class="fa-solid fa-arrow-up-right-from-square" style="font-size:0.7rem;"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Feature strip -->
     <div class="row g-3 mb-2">
@@ -87,6 +109,7 @@
                     <tr><td class="fw-semibold" style="font-family:'Inter',sans-serif;">Contestant Staff</td><td>staff@realityvote.lk</td><td>Staff@123</td></tr>
                     <tr><td class="fw-semibold" style="font-family:'Inter',sans-serif;">Viewer</td><td>viewer@realityvote.lk</td><td>Viewer@123</td></tr>
                     <tr><td class="fw-semibold" style="font-family:'Inter',sans-serif;">Compliance Officer</td><td>compliance@realityvote.lk</td><td>Compliance@123</td></tr>
+                    <tr><td class="fw-semibold" style="font-family:'Inter',sans-serif;">Marketing Officer</td><td>marketing@realityvote.lk</td><td>Marketing@123</td></tr>
                     <tr><td class="fw-semibold" style="font-family:'Inter',sans-serif;">Reporting Manager</td><td>reports@realityvote.lk</td><td>Reports@123</td></tr>
                     <tr><td class="fw-semibold" style="font-family:'Inter',sans-serif;">Support Staff</td><td>support@realityvote.lk</td><td>Support@123</td></tr>
                     <tr><td class="fw-semibold" style="font-family:'Inter',sans-serif;">Judge</td><td>judge@realityvote.lk</td><td>Judge@123</td></tr>

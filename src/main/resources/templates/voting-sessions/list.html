@@ -12,10 +12,10 @@
         </a>
     </div>
 
-    <div role="alert" class="alert alert-success" th:if="${successMessage}" th:text="${successMessage}"></div>
+    <div class="alert alert-success" th:if="${successMessage}" th:text="${successMessage}"></div>
 
     <div class="rv-card text-center py-5" th:if="${#lists.isEmpty(sessions)}">
-        <i class="fa-solid fa-square-poll-vertical fa-2x mb-3 rv-empty-icon"></i>
+        <i class="fa-solid fa-square-poll-vertical fa-2x mb-3" style="color:#4a4d58"></i>
         <p class="text-muted mb-0">No voting sessions yet.</p>
     </div>
 

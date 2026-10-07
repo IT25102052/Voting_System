@@ -41,4 +41,37 @@ public interface UserService {
      * @throws IllegalArgumentException if the current password is wrong
      */
     void changePassword(User user, PasswordChangeForm form);
+
+    // ── Compliance monitoring additions ──────────────────────────────────────
+
+    /** Find a user by their ID. */
+    java.util.Optional<User> findById(Long id);
+
+    /** Find a user by their email. */
+    java.util.Optional<User> findByEmail(String email);
+
+    /**
+     * Flag a user account with a reason. Records the compliance action
+     * and creates an audit log entry.
+     */
+    User flagUser(Long userId, String reason, String notes, String officerEmail);
+
+    /**
+     * Unflag (return to ACTIVE) a user account. Records the compliance action
+     * and creates an audit log entry.
+     */
+    User unflagUser(Long userId, String reason, String officerEmail);
+
+    /**
+     * Issue a warning to a user account (WARNING status).
+     * Records the compliance action and creates an audit log entry.
+     */
+    User warnUser(Long userId, String reason, String notes, String officerEmail);
+
+    /**
+     * Send a compliance message to a user.
+     * Stores a ComplianceMessage record and creates an audit log entry.
+     */
+    void sendComplianceMessage(Long userId, String subject, String body, String officerEmail);
+
 }

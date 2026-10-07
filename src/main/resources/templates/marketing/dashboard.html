@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Marketing Dashboard')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+<div class="rv-page">
+    <h2 class="rv-page-title mb-4">
+        <i class="fa-solid fa-bullhorn"></i> Marketing Dashboard
+    </h2>
+
+    <!-- Flash messages -->
+    <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fa-solid fa-check-circle"></i> <span th:text="${success}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="fa-solid fa-exclamation-circle"></i> <span th:text="${error}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <!-- KPI Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4 col-lg-2">
+            <div class="rv-card text-center h-100">
+                <div class="rv-mono fw-bold" style="font-size:1.8rem;color:var(--rv-cyan)" th:text="${totalCampaigns}">0</div>
+                <small class="text-muted">Total Campaigns</small>
+            </div>
+        </div>
+        <div class="col-md-4 col-lg-2">
+            <div class="rv-card text-center h-100">
+                <div class="rv-mono fw-bold" style="font-size:1.8rem;color:#2af0a0" th:text="${activeCampaigns}">0</div>
+                <small class="text-muted">Active Campaigns</small>
+            </div>
+        </div>
+        <div class="col-md-4 col-lg-2">
+            <div class="rv-card text-center h-100">
+                <div class="rv-mono fw-bold" style="font-size:1.8rem;color:#ffc857" th:text="${pendingAds}">0</div>
+                <small class="text-muted">Ads Pending Review</small>
+            </div>
+        </div>
+        <div class="col-md-4 col-lg-2">
+            <div class="rv-card text-center h-100">
+                <div class="rv-mono fw-bold" style="font-size:1.8rem;color:#2af0a0" th:text="${approvedAds}">0</div>
+                <small class="text-muted">Ads Approved</small>
+            </div>
+        </div>
+        <div class="col-md-4 col-lg-2">
+            <div class="rv-card text-center h-100">
+                <div class="rv-mono fw-bold" style="font-size:1.8rem;color:var(--rv-pink)" th:text="${activeAds}">0</div>
+                <small class="text-muted">Ads Live</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick actions -->
+    <div class="d-flex gap-2 mb-4">
+        <a th:href="@{/marketing/campaigns/create}" class="btn btn-accent">
+            <i class="fa-solid fa-plus"></i> New Campaign
+        </a>
+        <a th:href="@{/marketing/campaigns}" class="btn btn-outline-dark">
+            <i class="fa-solid fa-list"></i> All Campaigns
+        </a>
+    </div>
+
+    <!-- Recent campaigns -->
+    <div class="rv-card">
+        <h5 class="rv-page-title mb-3"><i class="fa-solid fa-folder-open"></i> Recent Campaigns</h5>
+        <div class="table-responsive">
+            <table class="table table-sm mb-0">
+                <thead>
+                <tr class="rv-mono" style="font-size:.75rem;color:var(--rv-text-muted)">
+                    <th>NAME</th><th>STATUS</th><th>DATES</th><th>ADS</th><th>CREATED</th><th></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="c : ${campaigns}" th:if="${#lists.size(campaigns) > 0}">
+                    <td th:text="${c.name}"></td>
+                    <td><span class="status-badge rv-mono" th:classappend="'status-' + ${c.status}" th:text="${c.status}"></span></td>
+                    <td class="rv-mono small text-muted">
+                        <span th:text="${c.startDate}"></span> → <span th:text="${c.endDate}"></span>
+                    </td>
+                    <td class="rv-mono" th:text="${#lists.size(c.advertisements)}">0</td>
+                    <td class="rv-mono small text-muted" th:text="${#temporals.format(c.createdDate, 'dd MMM yyyy')}"></td>
+                    <td>
+                        <a th:href="@{/marketing/campaigns/{id}(id=${c.id})}" class="btn btn-sm btn-outline-dark">
+                            <i class="fa-solid fa-eye"></i> View
+                        </a>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(campaigns)}">
+                    <td colspan="6" class="text-center text-muted py-4">No campaigns yet. Create one to get started!</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

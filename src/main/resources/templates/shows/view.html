@@ -7,7 +7,7 @@
 <div class="rv-page">
     <a class="btn btn-sm btn-outline-secondary mb-3" th:href="@{/admin/shows}">&larr; Back to Shows</a>
 
-    <div role="alert" class="alert alert-success" th:if="${successMessage}" th:text="${successMessage}"></div>
+    <div class="alert alert-success" th:if="${successMessage}" th:text="${successMessage}"></div>
 
     <div class="rv-card mb-4">
         <img th:if="${show.posterImagePath}" th:src="@{'/uploads/' + ${show.posterImagePath}}" alt="Show poster"
@@ -35,7 +35,7 @@
         </div>
 
         <div class="text-center py-4" th:if="${#lists.isEmpty(show.seasons)}">
-            <i class="fa-solid fa-layer-group fa-2x mb-3 rv-empty-icon"></i>
+            <i class="fa-solid fa-layer-group fa-2x mb-3" style="color:#4a4d58"></i>
             <p class="text-muted mb-0">No seasons yet. Add one to start scheduling episodes.</p>
         </div>
 

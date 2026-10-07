@@ -12,7 +12,7 @@
         </span>
     </div>
 
-    <div role="alert" class="alert alert-success" th:if="${successMessage}" th:text="${successMessage}"></div>
+    <div class="alert alert-success" th:if="${successMessage}" th:text="${successMessage}"></div>
 
     <form class="rv-card mb-4 d-flex gap-2 align-items-end" method="get" th:action="@{/staff/support/tickets}">
         <div class="flex-grow-1">

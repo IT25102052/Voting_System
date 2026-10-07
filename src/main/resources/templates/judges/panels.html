@@ -4,20 +4,31 @@
 <body>
 <nav th:replace="~{fragments/layout :: navbar}"></nav>
 
-<div class="rv-page" style="max-width:1000px">
+<div class="rv-page" style="max-width:1050px">
 
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="rv-page-title"><i class="fa-solid fa-people-group"></i> Judging Panels Overview</h2>
+        <div>
+            <h2 class="rv-page-title mb-1"><i class="fa-solid fa-people-group"></i> Judging Panels &amp; Windows</h2>
+            <span class="text-muted small">Manage jury panels and open/close episode scoring windows</span>
+        </div>
         <a class="btn btn-outline-secondary" th:href="@{/admin/judges}">&larr; Back to Judges</a>
     </div>
 
-    <div role="alert" class="alert alert-success" th:if="${successMessage}" th:text="${successMessage}"></div>
+    <div class="alert alert-success alert-dismissible fade show" th:if="${successMessage}">
+        <span th:text="${successMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <div class="alert alert-danger alert-dismissible fade show" th:if="${errorMessage}">
+        <span th:text="${errorMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
 
+    <!-- Show Selector -->
     <form class="rv-card mb-4 row g-2 align-items-end" method="get" th:action="@{/admin/judges/panels}">
         <div class="col-md-8">
-            <label class="form-label mb-1">Reality Show</label>
+            <label class="form-label rv-mono small mb-1">SELECT REALITY SHOW</label>
             <select name="showId" class="form-select" onchange="this.form.submit()">
-                <option value="">Select a show to view its panels…</option>
+                <option value="">Select a show to manage its panels…</option>
                 <option th:each="s : ${shows}" th:value="${s.id}" th:text="${s.name}"
                         th:selected="${selectedShowId != null and selectedShowId == s.id}"></option>
             </select>
@@ -25,42 +36,132 @@
     </form>
 
     <div th:if="${selectedShow == null}" class="rv-card text-center py-5">
-        <p class="text-muted mb-0">Pick a show above to see its panels and judging windows.</p>
+        <i class="fa-solid fa-tv fa-2x mb-3" style="color:#4a4d58"></i>
+        <p class="text-muted mb-0">Select a reality show above to view and configure its judging panels and scoring windows.</p>
     </div>
 
     <div th:if="${selectedShow != null}">
+
+        <!-- Quick Assign Judge Card -->
+        <div class="rv-card mb-4" style="background:rgba(0,188,212,0.03); border:1px solid rgba(0,188,212,0.25);">
+            <h5 class="rv-page-title mb-3" style="font-size:1.15rem;">
+                <i class="fa-solid fa-user-plus me-1"></i> Assign Judge to Panel for <span th:text="${selectedShow.name}"></span>
+            </h5>
+            <form method="post" th:action="@{/admin/judges/assign}">
+                <input type="hidden" name="showId" th:value="${selectedShow.id}">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label rv-mono small">JUDGE *</label>
+                        <select name="judgeId" class="form-select form-select-sm" required>
+                            <option value="">Select an active judge…</option>
+                            <option th:each="j : ${allJudges}" th:value="${j.id}" th:text="${j.fullName + ' (' + j.expertiseArea + ')'}"></option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label rv-mono small">PANEL NAME *</label>
+                        <input type="text" name="panelName" class="form-control form-control-sm" required placeholder="e.g. Main Jury" value="Main Jury">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label rv-mono small">SEASON</label>
+                        <select name="seasonId" id="panelSeasonSelect" class="form-select form-select-sm" onchange="filterPanelEpisodes(this.value)">
+                            <option value="">— All Seasons —</option>
+                            <option th:each="season : ${selectedShow.seasons}" th:value="${season.id}" th:text="'Season ' + ${season.seasonNumber}"></option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label rv-mono small">EPISODE</label>
+                        <select name="episodeId" id="panelEpisodeSelect" class="form-select form-select-sm">
+                            <option value="">— All Episodes —</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="mt-3 text-end">
+                    <button type="submit" class="btn btn-sm btn-accent">
+                        <i class="fa-solid fa-plus me-1"></i> Add to Panel
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Assignments Table -->
         <div class="rv-card mb-4">
-            <h5 class="mb-3" th:text="${selectedShow.name}"></h5>
+            <h5 class="mb-3"><i class="fa-solid fa-people-group me-1"></i> Active Panel Members</h5>
 
-            <div th:if="${#lists.isEmpty(assignments)}" class="text-muted">No judges assigned to this show yet.</div>
+            <div th:if="${#lists.isEmpty(assignments)}" class="text-muted text-center py-3">
+                No judges assigned to this show yet. Use the form above to add judges to panels.
+            </div>
 
-            <table class="table table-sm align-middle rv-sortable" th:unless="${#lists.isEmpty(assignments)}">
-                <thead><tr><th>Judge</th><th>Panel</th><th>Season</th><th>Episode</th></tr></thead>
+            <table class="table table-sm table-hover align-middle mb-0" th:unless="${#lists.isEmpty(assignments)}">
+                <thead>
+                <tr class="rv-mono" style="font-size:.74rem;color:var(--rv-text-muted)">
+                    <th>JUDGE</th>
+                    <th>PANEL</th>
+                    <th>SEASON</th>
+                    <th>EPISODE</th>
+                    <th>ASSIGNED</th>
+                    <th>ACTION</th>
+                </tr>
+                </thead>
                 <tbody>
                 <tr th:each="a : ${assignments}">
-                    <td><a th:href="@{'/admin/judges/' + ${a.judge.id}}" th:text="${a.judge.fullName}"></a></td>
-                    <td th:text="${a.panelName}"></td>
-                    <td th:text="${a.season != null ? ('Season ' + a.season.seasonNumber) : '— whole show —'}"></td>
-                    <td th:text="${a.episode != null ? ('Ep. ' + a.episode.episodeNumber + ' — ' + a.episode.title) : '— whole season —'}"></td>
+                    <td>
+                        <a th:href="@{'/admin/judges/' + ${a.judge.id}}" class="fw-semibold text-decoration-none" style="color:var(--rv-cyan);" th:text="${a.judge.fullName}"></a>
+                        <small class="text-muted d-block" th:text="${a.judge.expertiseArea}"></small>
+                    </td>
+                    <td><span class="badge bg-dark" th:text="${a.panelName}"></span></td>
+                    <td th:text="${a.season != null ? ('Season ' + a.season.seasonNumber) : '— Whole Show —'}"></td>
+                    <td th:text="${a.episode != null ? ('Ep. ' + a.episode.episodeNumber + ' — ' + a.episode.title) : '— Whole Season —'}"></td>
+                    <td class="rv-mono small text-muted" th:text="${#temporals.format(a.assignedDate, 'dd MMM yyyy')}"></td>
+                    <td>
+                        <form method="post" th:action="@{'/admin/judges/assignments/' + ${a.id} + '/remove'}"
+                              onsubmit="return confirm('Remove this panel assignment?');" class="d-inline">
+                            <input type="hidden" name="showId" th:value="${selectedShow.id}">
+                            <button type="submit" class="btn btn-sm btn-outline-danger" style="font-size:0.75rem;">
+                                <i class="fa-solid fa-times me-1"></i> Remove
+                            </button>
+                        </form>
+                    </td>
                 </tr>
                 </tbody>
             </table>
         </div>
 
+        <!-- Judging Windows Control -->
         <div class="rv-card">
-            <h5 class="mb-3"><i class="fa-solid fa-toggle-on"></i> Judging Windows</h5>
-            <p class="text-muted small">Open an episode's judging window so its assigned judges can submit or revise scores.</p>
+            <h5 class="mb-3"><i class="fa-solid fa-toggle-on me-1"></i> Episode Judging Windows</h5>
+            <p class="text-muted small mb-3">
+                Open an episode's judging window so its assigned jury can submit or revise scores.
+                When closed, judges cannot submit new scores or alter existing ones.
+            </p>
 
-            <table class="table table-sm align-middle rv-sortable" th:each="season : ${selectedShow.seasons}">
-                <caption th:text="'Season ' + ${season.seasonNumber}" style="caption-side: top; font-weight: 600; color: var(--rv-cyan);"></caption>
-                <thead><tr><th>Episode</th><th>Voting</th><th>Judging</th><th></th></tr></thead>
+            <div th:if="${#lists.isEmpty(selectedShow.seasons)}" class="text-muted">
+                No seasons created for this show yet.
+            </div>
+
+            <table class="table table-sm table-hover align-middle mb-4" th:each="season : ${selectedShow.seasons}">
+                <caption th:text="'Season ' + ${season.seasonNumber}" style="caption-side: top; font-weight: 600; color: var(--rv-gold); font-size:0.95rem;"></caption>
+                <thead>
+                <tr class="rv-mono" style="font-size:.74rem;color:var(--rv-text-muted)">
+                    <th>EPISODE</th>
+                    <th>AUDIENCE VOTING</th>
+                    <th>JUDGING STATUS</th>
+                    <th>ACTION</th>
+                </tr>
+                </thead>
                 <tbody>
                 <tr th:each="ep : ${season.episodes}">
-                    <td th:text="'Ep. ' + ${ep.episodeNumber} + ' — ' + ${ep.title}"></td>
-                    <td><span class="status-badge" th:classappend="${ep.votingOpen} ? 'status-OPEN' : 'status-CLOSED'"
-                              th:text="${ep.votingOpen} ? 'OPEN' : 'CLOSED'"></span></td>
-                    <td><span class="status-badge" th:classappend="${ep.judgingOpen} ? 'status-OPEN' : 'status-CLOSED'"
-                              th:text="${ep.judgingOpen} ? 'OPEN' : 'CLOSED'"></span></td>
+                    <td>
+                        <strong th:text="'Ep. ' + ${ep.episodeNumber} + ' — ' + ${ep.title}"></strong>
+                    </td>
+                    <td>
+                        <span class="status-badge" th:classappend="${ep.votingOpen} ? 'status-OPEN' : 'status-CLOSED'"
+                              th:text="${ep.votingOpen} ? 'VOTING OPEN' : 'VOTING CLOSED'"></span>
+                    </td>
+                    <td>
+                        <span class="badge" style="font-size:0.75rem;"
+                              th:classappend="${ep.judgingOpen} ? 'bg-success' : 'bg-secondary'"
+                              th:text="${ep.judgingOpen} ? 'JUDGING OPEN' : 'JUDGING CLOSED'"></span>
+                    </td>
                     <td>
                         <form method="post" th:action="@{'/admin/judges/episodes/' + ${ep.id} + '/judging-window'}" class="d-inline">
                             <input type="hidden" name="showId" th:value="${selectedShow.id}">
@@ -71,11 +172,45 @@
                         </form>
                     </td>
                 </tr>
+                <tr th:if="${#lists.isEmpty(season.episodes)}">
+                    <td colspan="4" class="text-muted text-center py-2">No episodes in this season yet.</td>
+                </tr>
                 </tbody>
             </table>
         </div>
     </div>
 
 </div>
+
+<script th:inline="javascript">
+/*<![CDATA[*/
+const showId = /*[[${selectedShowId}]]*/ null;
+let seasonsData = [];
+
+if (showId) {
+    fetch('/admin/judges/seasons-by-show?showId=' + showId)
+        .then(res => res.json())
+        .then(data => { seasonsData = data; })
+        .catch(err => console.error(err));
+}
+
+function filterPanelEpisodes(seasonId) {
+    const epSelect = document.getElementById('panelEpisodeSelect');
+    epSelect.innerHTML = '<option value="">— All Episodes —</option>';
+    if (!seasonId) return;
+
+    const season = seasonsData.find(s => s.id == seasonId);
+    if (season && season.episodes) {
+        season.episodes.forEach(ep => {
+            const opt = document.createElement('option');
+            opt.value = ep.id;
+            opt.textContent = 'Ep. ' + ep.episodeNumber + ' — ' + ep.title;
+            epSelect.appendChild(opt);
+        });
+    }
+}
+/*]]>*/
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

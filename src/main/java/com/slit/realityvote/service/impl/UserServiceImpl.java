@@ -6,6 +6,8 @@ import com.slit.realityvote.dto.RegistrationForm;
 import com.slit.realityvote.entity.AuditEventType;
 import com.slit.realityvote.entity.Role;
 import com.slit.realityvote.entity.User;
+import com.slit.realityvote.entity.UserStatus;
+import com.slit.realityvote.repository.ComplianceMessageRepository;
 import com.slit.realityvote.repository.UserRepository;
 import com.slit.realityvote.service.AuditLogService;
 import com.slit.realityvote.service.UserService;
@@ -22,6 +24,7 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuditLogService auditLogService;
+    private final ComplianceMessageRepository complianceMessageRepository;
 
     @Override
     public boolean emailTaken(String email) {
@@ -121,6 +124,84 @@ public class UserServiceImpl implements UserService {
         user.setPassword(passwordEncoder.encode(form.getNewPassword()));
         userRepository.save(user);
         auditLogService.record(AuditEventType.PASSWORD_CHANGED, "User changed their password", user.getEmail());
+    }
+
+    // ── Compliance monitoring additions ──────────────────────────────────────
+
+    @Override
+    public java.util.Optional<User> findById(Long id) {
+        return userRepository.findById(id);
+    }
+
+    @Override
+    public java.util.Optional<User> findByEmail(String email) {
+        return userRepository.findByEmail(normalize(email));
+    }
+
+    @Override
+    @Transactional
+    public User flagUser(Long userId, String reason, String notes, String officerEmail) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new jakarta.persistence.EntityNotFoundException("User not found: " + userId));
+        UserStatus previous = user.getStatus();
+        user.setStatus(com.slit.realityvote.entity.UserStatus.FLAGGED);
+        userRepository.save(user);
+        String desc = "User " + user.getEmail() + " flagged by compliance officer. " +
+                "Reason: " + reason + (notes != null && !notes.isBlank() ? ". Notes: " + notes : "") +
+                ". Previous status: " + previous;
+        auditLogService.record(AuditEventType.USER_FLAGGED, desc, officerEmail);
+        return user;
+    }
+
+    @Override
+    @Transactional
+    public User unflagUser(Long userId, String reason, String officerEmail) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new jakarta.persistence.EntityNotFoundException("User not found: " + userId));
+        UserStatus previous = user.getStatus();
+        user.setStatus(com.slit.realityvote.entity.UserStatus.ACTIVE);
+        userRepository.save(user);
+        String desc = "User " + user.getEmail() + " unflagged by compliance officer. " +
+                "Reason: " + reason + ". Previous status: " + previous;
+        auditLogService.record(AuditEventType.USER_UNFLAGGED, desc, officerEmail);
+        return user;
+    }
+
+    @Override
+    @Transactional
+    public User warnUser(Long userId, String reason, String notes, String officerEmail) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new jakarta.persistence.EntityNotFoundException("User not found: " + userId));
+        UserStatus previous = user.getStatus();
+        user.setStatus(com.slit.realityvote.entity.UserStatus.WARNING);
+        userRepository.save(user);
+        String desc = "Warning issued to " + user.getEmail() + " by compliance officer. " +
+                "Reason: " + reason + (notes != null && !notes.isBlank() ? ". Notes: " + notes : "") +
+                ". Previous status: " + previous;
+        auditLogService.record(AuditEventType.USER_WARNED, desc, officerEmail);
+        return user;
+    }
+
+    @Override
+    @Transactional
+    public void sendComplianceMessage(Long userId, String subject, String body, String officerEmail) {
+        User recipient = userRepository.findById(userId)
+                .orElseThrow(() -> new jakarta.persistence.EntityNotFoundException("User not found: " + userId));
+        User officer = userRepository.findByEmail(normalize(officerEmail))
+                .orElseThrow(() -> new jakarta.persistence.EntityNotFoundException("Officer not found: " + officerEmail));
+
+        // Persist the message
+        complianceMessageRepository.save(
+                com.slit.realityvote.entity.ComplianceMessage.builder()
+                        .sentBy(officer)
+                        .recipient(recipient)
+                        .subject(subject)
+                        .body(body)
+                        .build());
+
+        String desc = "Compliance message sent to " + recipient.getEmail() +
+                " by " + officerEmail + ". Subject: " + subject;
+        auditLogService.record(AuditEventType.COMPLIANCE_MESSAGE_SENT, desc, officerEmail);
     }
 
     private String normalize(String email) {

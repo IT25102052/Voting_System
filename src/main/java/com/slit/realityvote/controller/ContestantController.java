@@ -1,13 +1,11 @@
 package com.slit.realityvote.controller;
 
-import com.slit.realityvote.dto.RankingRow;
 import com.slit.realityvote.dto.SeasonOption;
 import com.slit.realityvote.entity.Contestant;
 import com.slit.realityvote.entity.ContestantStatus;
 import com.slit.realityvote.repository.SeasonRepository;
 import com.slit.realityvote.service.ContestantService;
 import com.slit.realityvote.service.RealityShowService;
-import com.slit.realityvote.service.ReportsService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -37,7 +35,6 @@ public class ContestantController {
     private final ContestantService contestantService;
     private final RealityShowService showService;
     private final SeasonRepository seasonRepository;
-    private final ReportsService reportsService;
 
     private static final int PAGE_SIZE = 9;
 
@@ -144,20 +141,7 @@ public class ContestantController {
     // VIEW single contestant
     @GetMapping("/{id}")
     public String view(@PathVariable Long id, Model model) {
-        Contestant contestant = contestantService.getById(id);
-        model.addAttribute("contestant", contestant);
-
-        // Current rank within the contestant's show — reuses the same
-        // ranking calculation the Reports module already relies on, so
-        // there's exactly one source of truth for how rank is computed.
-        if (contestant.getShow() != null) {
-            List<RankingRow> rankings = reportsService.getRankingsForShow(contestant.getShow().getId());
-            model.addAttribute("totalInShow", rankings.size());
-            rankings.stream()
-                    .filter(r -> id.equals(r.contestantId()))
-                    .findFirst()
-                    .ifPresent(r -> model.addAttribute("currentRank", r.rank()));
-        }
+        model.addAttribute("contestant", contestantService.getById(id));
         return "contestants/view";
     }
 

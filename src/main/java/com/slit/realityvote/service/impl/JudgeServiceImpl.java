@@ -1,4 +1,3 @@
-
 package com.slit.realityvote.service.impl;
 
 import com.slit.realityvote.entity.Judge;
@@ -13,6 +12,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -33,11 +34,13 @@ public class JudgeServiceImpl implements JudgeService {
     }
 
     @Override
+    public List<Judge> getAllActiveJudges() {
+        return judgeRepository.findByStatusAndDeletedFalseOrderByFullNameAsc(JudgeStatus.ACTIVE);
+    }
+
+    @Override
     @Transactional
     public Judge createJudge(Judge judge, MultipartFile photo) {
-        // Duplicate-detection, same pattern as ContestantServiceImpl: a
-        // judge's email doubles as their scoring-login identity, so it
-        // must be unique across active judge profiles.
         if (judgeRepository.existsByEmailIgnoreCaseAndDeletedFalse(judge.getEmail())) {
             throw new IllegalArgumentException("A judge with this email is already registered.");
         }

@@ -28,6 +28,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @RequiredArgsConstructor
 public class ProfileController {
 
+    //
     private final UserService userService;
     private final AuthBridgeService authBridgeService;
 

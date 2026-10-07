@@ -18,8 +18,8 @@
         </div>
     </div>
 
-    <div role="alert" class="alert alert-success" th:if="${successMessage}" th:text="${successMessage}"></div>
-    <div role="alert" class="alert alert-danger" th:if="${errorMessage}" th:text="${errorMessage}"></div>
+    <div class="alert alert-success" th:if="${successMessage}" th:text="${successMessage}"></div>
+    <div class="alert alert-danger" th:if="${errorMessage}" th:text="${errorMessage}"></div>
 
     <!-- Search + Filter -->
     <form class="rv-card mb-4 row g-2 align-items-end" method="get" th:action="@{/admin/judges}">
@@ -42,7 +42,7 @@
 
     <!-- Empty state -->
     <div class="rv-card text-center py-5" th:if="${judgePage.totalElements == 0}">
-        <i class="fa-solid fa-gavel fa-2x mb-3 rv-empty-icon"></i>
+        <i class="fa-solid fa-gavel fa-2x mb-3" style="color:#4a4d58"></i>
         <p class="text-muted mb-0">No judges match your search.</p>
     </div>
 
@@ -54,8 +54,8 @@
                     <img th:if="${j.photoPath}" th:src="@{'/uploads/' + ${j.photoPath}}"
                          style="width:64px;height:64px;object-fit:cover;border-radius:12px" alt="">
                     <div th:unless="${j.photoPath}"
-                         style="width:64px;height:64px;border-radius:12px;" class="rv-avatar-placeholder">
-                        <i class="fa-solid fa-scale-balanced"></i>
+                         style="width:64px;height:64px;border-radius:12px;background:#ece9f7;display:flex;align-items:center;justify-content:center">
+                        <i class="fa-solid fa-scale-balanced" style="color:#5a5e6a"></i>
                     </div>
                     <div>
                         <h6 class="mb-1" th:text="${j.fullName}">Name</h6>

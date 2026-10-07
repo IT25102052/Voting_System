@@ -13,11 +13,11 @@
         </a>
     </div>
 
-    <div role="alert" class="alert alert-success" th:if="${successMessage}" th:text="${successMessage}"></div>
-    <div role="alert" class="alert alert-danger" th:if="${errorMessage}" th:text="${errorMessage}"></div>
+    <div class="alert alert-success" th:if="${successMessage}" th:text="${successMessage}"></div>
+    <div class="alert alert-danger" th:if="${errorMessage}" th:text="${errorMessage}"></div>
 
     <div class="rv-card text-center py-5" th:if="${#lists.isEmpty(episodes)}">
-        <i class="fa-solid fa-gavel fa-2x mb-3 rv-empty-icon"></i>
+        <i class="fa-solid fa-gavel fa-2x mb-3" style="color:#4a4d58"></i>
         <p class="text-muted mb-0">You're not on any judging panel yet. Ask an administrator to assign you.</p>
     </div>
 
