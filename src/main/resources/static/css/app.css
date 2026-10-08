@@ -141,47 +141,6 @@ a:focus-visible, button:focus-visible, .btn:focus-visible, input:focus-visible, 
     z-index: 1030;
     backdrop-filter: saturate(160%) blur(10px);
 }
-/* Broadcast Header Theme Enhancements */
-.rv-navbar {
-    background-color: #0b0f19 !important;
-    backdrop-filter: blur(12px);
-}
-
-.text-accent {
-    color: #00f0ff !important;
-}
-
-.btn-accent {
-    background-color: #00f0ff;
-    color: #0b0f19;
-    font-weight: 600;
-    border: none;
-}
-
-.btn-accent:hover {
-    background-color: #00c8d6;
-    color: #0b0f19;
-}
-
-/* Smooth Dropdown Animation */
-.rv-navbar .dropdown-menu {
-    border: 1px solid rgba(255, 255, 255, 0.125);
-    background-color: #111827;
-    margin-top: 0.5rem;
-    border-radius: 0.5rem;
-}
-
-.rv-navbar .dropdown-item {
-    padding: 0.5rem 1rem;
-    font-size: 0.875rem;
-    color: #9ca3af;
-    transition: all 0.15s ease-in-out;
-}
-
-.rv-navbar .dropdown-item:hover {
-    background-color: #1f2937;
-    color: #ffffff;
-}
 .navbar-brand {
     font-family: 'Montserrat', sans-serif;
     font-weight: 800;
@@ -782,4 +741,3 @@ body::after {
     .rv-hero-photo { min-height: 560px; }
     .rv-hero-inner { padding: 4.5rem 1rem 3rem; }
 }
-

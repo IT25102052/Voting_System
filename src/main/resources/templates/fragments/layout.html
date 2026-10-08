@@ -9,154 +9,146 @@
     <link rel="stylesheet" th:href="@{/css/app.css}">
 </head>
 <body>
-
-<nav th:fragment="navbar" class="navbar navbar-expand-xl navbar-dark rv-navbar sticky-top border-bottom border-1" style="border-color: var(--rv-border) !important;">
-    <div class="container-fluid px-4">
-
-        <!-- BRAND & NEON LIVE INDICATOR -->
-        <a class="navbar-brand" th:href="@{/}">
-            <i class="fa-solid fa-star"></i> REALITY<span class="text-accent">VOTE</span>
-
-            <!-- Live telemetry dot matching Neon Studio style -->
-            <span class="status-badge status-ONGOING ms-1 px-2 py-0" title="System Live">LIVE</span>
+<nav th:fragment="navbar" class="navbar navbar-expand-lg navbar-dark rv-navbar">
+    <div class="container">
+        <a class="navbar-brand fw-bold" th:href="@{/}">
+            <i class="fa-solid fa-star"></i> Reality<span class="text-accent">Vote</span>
+            <span style="width:7px;height:7px;background:#ff1ee9;border-radius:50%;box-shadow:0 0 0 3px rgba(255,30,233,.25);display:inline-block;margin-left:.2rem;" title="Live"></span>
         </a>
-
-        <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
             <span class="navbar-toggler-icon"></span>
         </button>
-
         <div class="collapse navbar-collapse" id="navMenu">
-
-            <!-- CATEGORIZED DROPDOWN NAVIGATION (JetBrains Mono via app.css) -->
-            <ul class="navbar-nav me-auto ms-xl-4 gap-xl-1">
-
-                <!-- 1. SHOWS & TALENT -->
-                <li class="nav-item dropdown" sec:authorize="hasAnyRole('ADMINISTRATOR','CONTESTANT_STAFF','JUDGE')">
-                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="fa-solid fa-tv me-1" style="color: var(--rv-cyan);"></i> Shows &amp; Talent
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item" sec:authorize="hasRole('ADMINISTRATOR')">
+                    <a class="nav-link" th:href="@{/admin/shows}">
+                        <i class="fa-solid fa-tv"></i> Manage Shows
                     </a>
-                    <ul class="dropdown-menu shadow-lg">
-                        <li sec:authorize="hasRole('ADMINISTRATOR')">
-                            <a class="dropdown-item" th:href="@{/admin/shows}"><i class="fa-solid fa-tv me-2"></i> Manage Shows</a>
-                        </li>
-                        <li sec:authorize="hasRole('ADMINISTRATOR')">
-                            <a class="dropdown-item" th:href="@{/admin/voting-sessions}"><i class="fa-solid fa-square-poll-vertical me-2"></i> Voting Sessions</a>
-                        </li>
-                        <li sec:authorize="hasAnyRole('ADMINISTRATOR','CONTESTANT_STAFF')">
-                            <a class="dropdown-item" th:href="@{/staff/contestants}"><i class="fa-solid fa-users me-2"></i> Contestants</a>
-                        </li>
-                        <li sec:authorize="hasRole('ADMINISTRATOR')">
-                            <a class="dropdown-item" th:href="@{/admin/judges}"><i class="fa-solid fa-gavel me-2"></i> Judges &amp; Panels</a>
-                        </li>
-                        <li sec:authorize="hasRole('JUDGE')">
-                            <a class="dropdown-item" th:href="@{/judge/scores}"><i class="fa-solid fa-star-half-stroke me-2"></i> Score Contestants</a>
-                        </li>
-                        <li sec:authorize="hasRole('JUDGE')">
-                            <a class="dropdown-item" th:href="@{/judge/scores/history}"><i class="fa-solid fa-clock-rotate-left me-2"></i> My Scores</a>
-                        </li>
-                    </ul>
                 </li>
-
-                <!-- 2. LIVE & COMPLIANCE -->
-                <li class="nav-item dropdown" sec:authorize="hasAnyRole('ADMINISTRATOR','COMPLIANCE_OFFICER')">
-                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="fa-solid fa-shield-halved me-1" style="color: var(--rv-pink);"></i> Compliance &amp; Live
+                <li class="nav-item" sec:authorize="hasRole('ADMINISTRATOR')">
+                    <a class="nav-link" th:href="@{/admin/voting-sessions}">
+                        <i class="fa-solid fa-square-poll-vertical"></i> Voting Sessions
                     </a>
-                    <ul class="dropdown-menu shadow-lg">
-                        <li><a class="dropdown-item" th:href="@{/compliance/dashboard}"><i class="fa-solid fa-shield-halved me-2"></i> Dashboard</a></li>
-                        <li><a class="dropdown-item" th:href="@{/compliance/monitoring}"><i class="fa-solid fa-tower-broadcast me-2"></i> Live Monitor</a></li>
-                        <li><a class="dropdown-item" th:href="@{/compliance/activity}"><i class="fa-solid fa-chart-bar me-2"></i> Vote Activity</a></li>
-                        <li><a class="dropdown-item" th:href="@{/compliance/alerts}"><i class="fa-solid fa-bell me-2"></i> Alerts</a></li>
-                        <li><a class="dropdown-item" th:href="@{/compliance/fraud-reports}"><i class="fa-solid fa-magnifying-glass-chart me-2"></i> Fraud Reports</a></li>
-                        <li><a class="dropdown-item" th:href="@{/compliance/voting-rules}"><i class="fa-solid fa-sliders me-2"></i> Voting Rules</a></li>
-                        <li><a class="dropdown-item" th:href="@{/compliance/advertising}"><i class="fa-solid fa-gavel me-2"></i> Ad Compliance</a></li>
-                        <li><hr class="dropdown-divider" style="border-color: var(--rv-border);"></li>
-                        <li><a class="dropdown-item" th:href="@{/compliance/audit-logs}"><i class="fa-solid fa-list-check me-2"></i> Audit Logs</a></li>
-                    </ul>
                 </li>
-
-                <!-- 3. OPERATIONS, MARKETING & REPORTS -->
-                <li class="nav-item dropdown" sec:authorize="hasAnyRole('ADMINISTRATOR','SUPPORT_STAFF','MARKETING_OFFICER','REPORTING_MANAGER')">
-                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="fa-solid fa-chart-line me-1" style="color: var(--rv-success);"></i> Operations
+                <li class="nav-item" sec:authorize="hasAnyRole('ADMINISTRATOR','CONTESTANT_STAFF')">
+                    <a class="nav-link" th:href="@{/staff/contestants}">
+                        <i class="fa-solid fa-users"></i> Contestants
                     </a>
-                    <ul class="dropdown-menu shadow-lg">
-                        <li sec:authorize="hasAnyRole('ADMINISTRATOR','REPORTING_MANAGER')">
-                            <a class="dropdown-item" th:href="@{/reports/dashboard}"><i class="fa-solid fa-chart-line me-2"></i> Analytics Reports</a>
-                        </li>
-                        <li sec:authorize="hasAnyRole('ADMINISTRATOR','MARKETING_OFFICER')">
-                            <a class="dropdown-item" th:href="@{/marketing}"><i class="fa-solid fa-bullhorn me-2"></i> Marketing &amp; Ads</a>
-                        </li>
-                        <li sec:authorize="hasAnyRole('ADMINISTRATOR','SUPPORT_STAFF')">
-                            <a class="dropdown-item" th:href="@{/staff/support/tickets}"><i class="fa-solid fa-headset me-2"></i> Support Tickets</a>
-                        </li>
-                        <li sec:authorize="hasAnyRole('ADMINISTRATOR','SUPPORT_STAFF')">
-                            <a class="dropdown-item" th:href="@{/staff/faqs}"><i class="fa-solid fa-circle-question me-2"></i> Manage FAQs</a>
-                        </li>
-                    </ul>
                 </li>
-
-                <!-- 4. VIEWER VOTING PORTAL -->
-                <li class="nav-item dropdown" sec:authorize="hasRole('VIEWER')">
-                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="fa-solid fa-check-to-slot me-1 text-accent"></i> Voting Portal
+                <li class="nav-item" sec:authorize="hasRole('ADMINISTRATOR')">
+                    <a class="nav-link" th:href="@{/admin/judges}">
+                        <i class="fa-solid fa-gavel"></i> Judges &amp; Panels
                     </a>
-                    <ul class="dropdown-menu shadow-lg">
-                        <li><a class="dropdown-item" th:href="@{/vote}"><i class="fa-solid fa-check-to-slot me-2"></i> Vote Now</a></li>
-                        <li><a class="dropdown-item" th:href="@{/vote/history}"><i class="fa-solid fa-clock-rotate-left me-2"></i> My Vote History</a></li>
-                        <li><a class="dropdown-item" th:href="@{/support/tickets}"><i class="fa-solid fa-headset me-2"></i> My Tickets</a></li>
-                    </ul>
                 </li>
-
-                <!-- PUBLIC HELP -->
+                <li class="nav-item" sec:authorize="hasRole('JUDGE')">
+                    <a class="nav-link" th:href="@{/judge/scores}">
+                        <i class="fa-solid fa-star-half-stroke"></i> Score Contestants
+                    </a>
+                </li>
+                <li class="nav-item" sec:authorize="hasRole('JUDGE')">
+                    <a class="nav-link" th:href="@{/judge/scores/history}">
+                        <i class="fa-solid fa-clock-rotate-left"></i> My Scores
+                    </a>
+                </li>
+                <li class="nav-item" sec:authorize="hasRole('VIEWER')">
+                    <a class="nav-link" th:href="@{/vote}">
+                        <i class="fa-solid fa-check-to-slot"></i> Vote Now
+                    </a>
+                </li>
+                <li class="nav-item" sec:authorize="hasRole('VIEWER')">
+                    <a class="nav-link" th:href="@{/vote/history}">
+                        <i class="fa-solid fa-clock-rotate-left"></i> My Votes
+                    </a>
+                </li>
+                <li class="nav-item" sec:authorize="hasRole('VIEWER')">
+                    <a class="nav-link" th:href="@{/support/tickets}">
+                        <i class="fa-solid fa-headset"></i> Support
+                    </a>
+                </li>
+                <li class="nav-item" sec:authorize="hasAnyRole('ADMINISTRATOR','SUPPORT_STAFF')">
+                    <a class="nav-link" th:href="@{/staff/support/tickets}">
+                        <i class="fa-solid fa-headset"></i> Tickets
+                    </a>
+                </li>
+                <li class="nav-item" sec:authorize="hasAnyRole('ADMINISTRATOR','SUPPORT_STAFF')">
+                    <a class="nav-link" th:href="@{/staff/faqs}">
+                        <i class="fa-solid fa-circle-question"></i> FAQs
+                    </a>
+                </li>
                 <li class="nav-item">
                     <a class="nav-link" th:href="@{/faq}">
-                        <i class="fa-regular fa-circle-question me-1"></i> Help
+                        <i class="fa-regular fa-circle-question"></i> Help
                     </a>
                 </li>
-            </ul>
-
-            <!-- USER & AUTHENTICATION SECTION -->
-            <ul class="navbar-nav ms-auto align-items-xl-center gap-2 mt-3 mt-xl-0">
-
-                <!-- LOGGED IN USER PROFILE DROPDOWN -->
-                <li class="nav-item dropdown" sec:authorize="isAuthenticated()">
-                    <a class="nav-link dropdown-toggle rv-mono px-3 py-1.5 rounded"
-                       style="background: var(--rv-navy-2); border: 1px solid var(--rv-border);"
-                       href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="fa-solid fa-circle-user text-accent me-1 fs-6"></i>
-                        <span sec:authentication="name" class="fw-bold">USER</span>
+                <li class="nav-item" sec:authorize="hasAnyRole('ADMINISTRATOR','COMPLIANCE_OFFICER')">
+                    <a class="nav-link" th:href="@{/compliance/dashboard}">
+                        <i class="fa-solid fa-shield-halved"></i> Compliance
                     </a>
-                    <ul class="dropdown-menu dropdown-menu-end shadow-lg">
-                        <li>
-                            <a class="dropdown-item" th:href="@{/profile}">
-                                <i class="fa-solid fa-user me-2"></i> My Profile
-                            </a>
-                        </li>
-                        <li><hr class="dropdown-divider" style="border-color: var(--rv-border);"></li>
-                        <li>
-                            <form th:action="@{/logout}" method="post" class="px-2 py-1">
-                                <button type="submit" class="btn btn-sm btn-outline-danger w-100 text-start border-0 rv-mono" style="font-size: .78rem;">
-                                    <i class="fa-solid fa-right-from-bracket me-2"></i> Sign Out
-                                </button>
-                            </form>
-                        </li>
-                    </ul>
                 </li>
-
-                <!-- GUEST LOG IN / REGISTER BUTTONS -->
+                <li class="nav-item" sec:authorize="hasAnyRole('ADMINISTRATOR','COMPLIANCE_OFFICER')">
+                    <a class="nav-link" th:href="@{/compliance/monitoring}">
+                        <i class="fa-solid fa-tower-broadcast"></i> Live Monitor
+                    </a>
+                </li>
+                <li class="nav-item" sec:authorize="hasAnyRole('ADMINISTRATOR','COMPLIANCE_OFFICER')">
+                    <a class="nav-link" th:href="@{/compliance/audit-logs}">
+                        <i class="fa-solid fa-list-check"></i> Audit Logs
+                    </a>
+                </li>
+                <li class="nav-item" sec:authorize="hasAnyRole('ADMINISTRATOR','COMPLIANCE_OFFICER')">
+                    <a class="nav-link" th:href="@{/compliance/activity}">
+                        <i class="fa-solid fa-chart-bar"></i> Vote Activity
+                    </a>
+                </li>
+                <li class="nav-item" sec:authorize="hasAnyRole('ADMINISTRATOR','COMPLIANCE_OFFICER')">
+                    <a class="nav-link" th:href="@{/compliance/alerts}">
+                        <i class="fa-solid fa-bell"></i> Alerts
+                    </a>
+                </li>
+                <li class="nav-item" sec:authorize="hasAnyRole('ADMINISTRATOR','COMPLIANCE_OFFICER')">
+                    <a class="nav-link" th:href="@{/compliance/fraud-reports}">
+                        <i class="fa-solid fa-magnifying-glass-chart"></i> Fraud Reports
+                    </a>
+                </li>
+                <li class="nav-item" sec:authorize="hasAnyRole('ADMINISTRATOR','COMPLIANCE_OFFICER')">
+                    <a class="nav-link" th:href="@{/compliance/voting-rules}">
+                        <i class="fa-solid fa-sliders"></i> Voting Rules
+                    </a>
+                </li>
+                <li class="nav-item" sec:authorize="hasAnyRole('ADMINISTRATOR','MARKETING_OFFICER')">
+                    <a class="nav-link" th:href="@{/marketing}">
+                        <i class="fa-solid fa-bullhorn"></i> Marketing &amp; Ads
+                    </a>
+                </li>
+                <li class="nav-item" sec:authorize="hasAnyRole('ADMINISTRATOR','COMPLIANCE_OFFICER')">
+                    <a class="nav-link" th:href="@{/compliance/advertising}">
+                        <i class="fa-solid fa-gavel"></i> Ad Compliance
+                    </a>
+                </li>
+                <li class="nav-item" sec:authorize="hasAnyRole('ADMINISTRATOR','REPORTING_MANAGER')">
+                    <a class="nav-link" th:href="@{/reports/dashboard}">
+                        <i class="fa-solid fa-chart-line"></i> Reports
+                    </a>
+                </li>
+                <li class="nav-item" sec:authorize="isAuthenticated()">
+                    <a class="nav-link" th:href="@{/profile}">
+                        <i class="fa-solid fa-user"></i> Profile
+                    </a>
+                </li>
+                <li class="nav-item" sec:authorize="isAuthenticated()">
+                    <form th:action="@{/logout}" method="post" class="d-inline">
+                        <button type="submit" class="btn btn-sm btn-outline-light ms-2">Logout</button>
+                    </form>
+                </li>
                 <li class="nav-item" sec:authorize="!isAuthenticated()">
                     <a class="nav-link" th:href="@{/register}">Register</a>
                 </li>
                 <li class="nav-item" sec:authorize="!isAuthenticated()">
-                    <a class="btn btn-sm btn-accent px-3 py-1" th:href="@{/login}">Login</a>
+                    <a class="btn btn-sm btn-accent ms-2" th:href="@{/login}">Login</a>
                 </li>
             </ul>
-
         </div>
     </div>
 </nav>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/bootstrap.bundle.min.js"></script>
 </body>
 </html>

@@ -15,6 +15,7 @@
         initPageTransitions();
         initScoreSliders();
         initEmailValidation();
+        initFormValidation();
     });
 
 
@@ -248,30 +249,90 @@
         });
     }
 
+    function setFieldValidity(input, valid, message) {
+        var feedback = input.parentElement && input.parentElement.querySelector('.invalid-feedback');
+        if (valid) {
+            input.classList.remove('is-invalid');
+            if (input.value && input.value.trim() !== '') {
+                input.classList.add('is-valid');
+            } else {
+                input.classList.remove('is-valid');
+            }
+            input.setCustomValidity('');
+            return;
+        }
+        input.classList.remove('is-valid');
+        input.classList.add('is-invalid');
+        if (message) {
+            input.setCustomValidity(message);
+            if (feedback && !feedback.dataset.serverError) {
+                feedback.textContent = message;
+            }
+        }
+    }
+
+    function validateInput(input) {
+        input.setCustomValidity('');
+        if (input.type === 'email' && input.value.trim() !== '' && !input.validity.valid) {
+            setFieldValidity(input, false, 'Please enter a valid email address');
+            return false;
+        }
+        if (input.required && input.value.trim() === '') {
+            setFieldValidity(input, false, input.getAttribute('data-required-msg') || 'This field is required');
+            return false;
+        }
+        if (input.minLength > 0 && input.value.trim().length > 0 && input.value.trim().length < input.minLength) {
+            setFieldValidity(input, false, 'Must be at least ' + input.minLength + ' characters');
+            return false;
+        }
+        if (input.name === 'confirmPassword' && input.form) {
+            var password = input.form.querySelector('[name="password"]');
+            if (password && input.value !== password.value) {
+                setFieldValidity(input, false, 'Passwords do not match');
+                return false;
+            }
+        }
+        if (input.validity.valid) {
+            setFieldValidity(input, true);
+            return true;
+        }
+        setFieldValidity(input, false, input.validationMessage);
+        return false;
+    }
+
     function initEmailValidation() {
         document.querySelectorAll('input[type="email"]').forEach(function (input) {
+            input.addEventListener('input', function () { validateInput(input); });
+            input.addEventListener('blur', function () { validateInput(input); });
+        });
+    }
 
-            function validateEmail() {
-                // Optional field: empty is valid
-                if (input.value.trim() === '') {
-                    input.classList.remove('is-invalid', 'is-valid');
-                    return;
+    function initFormValidation() {
+        document.querySelectorAll('form.js-validate').forEach(function (form) {
+            form.setAttribute('novalidate', 'novalidate');
+            form.querySelectorAll('input, select, textarea').forEach(function (input) {
+                if (input.type === 'hidden' || input.type === 'submit' || input.type === 'button') return;
+                input.addEventListener('blur', function () { validateInput(input); });
+                input.addEventListener('input', function () {
+                    if (input.classList.contains('is-invalid') || input.classList.contains('is-valid')) {
+                        validateInput(input);
+                    }
+                });
+            });
+            form.addEventListener('submit', function (e) {
+                var firstInvalid = null;
+                form.querySelectorAll('input, select, textarea').forEach(function (input) {
+                    if (input.type === 'hidden' || input.type === 'submit' || input.type === 'button') return;
+                    if (!validateInput(input) && !firstInvalid) firstInvalid = input;
+                });
+                if (firstInvalid) {
+                    e.preventDefault();
+                    firstInvalid.focus();
+                    if (window.RV && window.RV.toast) {
+                        window.RV.toast('Please correct the highlighted fields and try again.', 'danger');
+                    }
                 }
-
-                if (input.validity.valid) {
-                    input.classList.remove('is-invalid');
-                    input.classList.add('is-valid');
-                } else {
-                    input.classList.remove('is-valid');
-                    input.classList.add('is-invalid');
-                }
-            }
-
-            // Validate while typing
-            input.addEventListener('input', validateEmail);
-
-            // Validate when leaving the field
-            input.addEventListener('blur', validateEmail);
+            });
         });
     }
 

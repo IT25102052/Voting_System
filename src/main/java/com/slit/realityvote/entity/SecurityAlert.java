@@ -3,7 +3,6 @@ package com.slit.realityvote.entity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Email;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -55,7 +54,6 @@ public class SecurityAlert {
     private Long sessionId;
 
     /** Optionally names the actor whose behaviour triggered the alert. */
-    @Email(message = "Please enter a valid email address")
     private String relatedActorEmail;
 
     /** Stamped when status transitions to RESOLVED. */

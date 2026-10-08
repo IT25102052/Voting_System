@@ -23,7 +23,7 @@ public class HomeController {
         return "login";
     }
 
-    @GetMapping("/error/403")
+    @org.springframework.web.bind.annotation.RequestMapping("/error/403")
     public String accessDenied() {
         return "error/403";
     }
