@@ -14,7 +14,9 @@
         initSpotlightCards();
         initPageTransitions();
         initScoreSliders();
+        initEmailValidation();
     });
+
 
     /* ---------- Toasts ---------- */
     function toastContainer() {
@@ -245,4 +247,32 @@
             }
         });
     }
+
+    function initEmailValidation() {
+        document.querySelectorAll('input[type="email"]').forEach(function (input) {
+
+            function validateEmail() {
+                // Optional field: empty is valid
+                if (input.value.trim() === '') {
+                    input.classList.remove('is-invalid', 'is-valid');
+                    return;
+                }
+
+                if (input.validity.valid) {
+                    input.classList.remove('is-invalid');
+                    input.classList.add('is-valid');
+                } else {
+                    input.classList.remove('is-valid');
+                    input.classList.add('is-invalid');
+                }
+            }
+
+            // Validate while typing
+            input.addEventListener('input', validateEmail);
+
+            // Validate when leaving the field
+            input.addEventListener('blur', validateEmail);
+        });
+    }
+
 })();
