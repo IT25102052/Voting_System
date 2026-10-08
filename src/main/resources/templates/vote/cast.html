@@ -58,30 +58,24 @@
         </div>
     </div>
 
-    <!-- ═══ Broadcast Contestant Cards (Flowbite Pattern) ═══ -->
+    <!-- ═══ Contestants ═══ -->
     <div class="row g-3 mb-4">
         <div class="col-md-6" th:each="c : ${votingSession.contestants}">
-            <div class="contestant-broadcast-card h-100 p-3 d-flex flex-column justify-content-between">
-                <div class="d-flex align-items-center gap-3 mb-3">
+            <div class="show-card d-flex justify-content-between align-items-center h-100" style="border-left-color: var(--rv-gold);">
+                <div class="d-flex align-items-center gap-3">
                     <img th:if="${c.photoPath}" th:src="@{'/uploads/' + ${c.photoPath}}"
-                         style="width:68px;height:68px;object-fit:cover;border-radius:10px;border:1px solid var(--rv-border);" alt="">
+                         style="width:56px;height:56px;object-fit:cover;border-radius:12px" alt="">
                     <div th:unless="${c.photoPath}"
-                         style="width:68px;height:68px;border-radius:10px;background:var(--rv-navy-3);display:flex;align-items:center;justify-content:center;border:1px solid var(--rv-border);">
-                        <i class="fa-solid fa-user fa-lg" style="color:var(--rv-text-muted);"></i>
+                         style="width:56px;height:56px;border-radius:12px;background:#ece9f7;display:flex;align-items:center;justify-content:center">
+                        <i class="fa-solid fa-user" style="color:#5a5e6a"></i>
                     </div>
-                    <div class="flex-grow-1">
-                        <div class="d-flex align-items-center justify-content-between">
-                            <span class="flowbite-badge flowbite-badge-info" th:text="${c.talentCategory ?: 'Contestant'}">Category</span>
-                            <span class="rv-mono small text-muted" th:text="'#' + ${c.id}">#1</span>
-                        </div>
-                        <h6 class="fw-bold mb-0 mt-1" style="font-size:1.05rem;" th:text="${c.fullName}">Name</h6>
-                        <small class="text-muted" th:text="${c.hometown ?: 'Broadcast Finalist'}"></small>
+                    <div>
+                        <div class="fw-semibold" th:text="${c.fullName}">Name</div>
+                        <small class="text-muted" th:text="${c.talentCategory}"></small>
                     </div>
                 </div>
                 <form method="post" th:action="@{'/vote/' + ${votingSession.id} + '/contestants/' + ${c.id}}">
-                    <button class="btn btn-accent w-100 py-2 d-flex align-items-center justify-content-center gap-2 fw-semibold" type="submit">
-                        <i class="fa-solid fa-check-to-slot"></i> Cast Official Vote
-                    </button>
+                    <button class="btn btn-sm btn-accent" type="submit"><i class="fa-solid fa-check-to-slot"></i> Vote</button>
                 </form>
             </div>
         </div>

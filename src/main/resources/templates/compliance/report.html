@@ -8,27 +8,25 @@
 
     <div class="d-flex align-items-center justify-content-between mb-4">
         <div class="d-flex align-items-center gap-3">
-            <a th:href="@{/compliance/dashboard}" class="btn btn-sm btn-outline-dark d-inline-flex align-items-center gap-1">
-                <span th:replace="~{fragments/heroicons :: arrowLeft('heroicon-sm')}"></span> Dashboard
+            <a th:href="@{/compliance/dashboard}" class="btn btn-sm btn-outline-dark">
+                <i class="fa-solid fa-arrow-left"></i> Dashboard
             </a>
-            <h2 class="rv-page-title mb-0 d-flex align-items-center gap-2">
-                <span th:replace="~{fragments/heroicons :: documentText('heroicon-md')}"></span> Compliance Report
-            </h2>
+            <h2 class="rv-page-title mb-0"><i class="fa-solid fa-file-alt"></i> Compliance Report</h2>
         </div>
         <div class="d-flex gap-2">
             <form method="post"
                   th:action="@{/compliance/reports/{id}/save(id=${report.sessionId})}">
                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-                <button class="btn btn-sm btn-outline-dark d-inline-flex align-items-center gap-1" type="submit">
-                    <span th:replace="~{fragments/heroicons :: documentPlus('heroicon-sm')}"></span> Save as Draft
+                <button class="btn btn-sm btn-outline-dark" type="submit">
+                    <i class="fa-solid fa-floppy-disk"></i> Save as Draft
                 </button>
             </form>
-            <a class="btn btn-sm btn-outline-dark d-inline-flex align-items-center gap-1" th:href="@{/compliance/saved-reports}">
-                <span th:replace="~{fragments/heroicons :: shieldCheck('heroicon-sm')}"></span> Saved Reports
+            <a class="btn btn-sm btn-outline-dark" th:href="@{/compliance/saved-reports}">
+                <i class="fa-solid fa-file-shield"></i> Saved Reports
             </a>
-            <a class="btn btn-accent btn-sm d-inline-flex align-items-center gap-1"
+            <a class="btn btn-accent btn-sm"
                th:href="@{/compliance/reports/{id}/export(id=${report.sessionId})}">
-                <span th:replace="~{fragments/heroicons :: documentArrowDown('heroicon-sm')}"></span> Export CSV
+                <i class="fa-solid fa-file-csv"></i> Export CSV
             </a>
         </div>
     </div>
@@ -49,9 +47,7 @@
 
     <!-- Activity Summary -->
     <div class="rv-card mb-4">
-        <h5 class="rv-page-title mb-3 d-flex align-items-center gap-2">
-            <span th:replace="~{fragments/heroicons :: chartBar('heroicon-sm')}"></span> Voting Activity
-        </h5>
+        <h5 class="rv-page-title mb-3"><i class="fa-solid fa-chart-bar"></i> Voting Activity</h5>
         <div class="row g-3 mb-3">
             <div class="col-md-4">
                 <div class="text-muted small">Total Votes</div>
@@ -74,18 +70,16 @@
 
     <!-- Anomaly Summary -->
     <div class="rv-card mb-4">
-        <h5 class="rv-page-title mb-3 d-flex align-items-center gap-2">
-            <span th:replace="~{fragments/heroicons :: exclamationTriangle('heroicon-sm')}"></span> Anomaly Detection
-        </h5>
+        <h5 class="rv-page-title mb-3"><i class="fa-solid fa-bug"></i> Anomaly Detection</h5>
         <div class="mb-2">
             <span class="status-badge"
                   th:classappend="${report.anomalyReport.totalFlaggedEvents > 0} ? 'status-ELIMINATED' : 'status-ACTIVE'"
                   th:text="${report.anomalyReport.totalFlaggedEvents} + ' flagged events'"></span>
         </div>
         <ul class="list-group list-group-flush">
-            <li class="list-group-item bg-transparent d-flex align-items-center gap-2" style="border-color:var(--rv-border);"
+            <li class="list-group-item bg-transparent" style="border-color:var(--rv-border);"
                 th:each="desc : ${report.anomalyReport.anomalyDescriptions}">
-                <span th:replace="~{fragments/heroicons :: exclamationTriangle('heroicon-sm text-warning flex-shrink-0')}"></span>
+                <i class="fa-solid fa-circle-dot text-warning me-2"></i>
                 <span th:text="${desc}"></span>
             </li>
         </ul>
@@ -93,9 +87,7 @@
 
     <!-- Integrity Summary -->
     <div class="rv-card mb-4">
-        <h5 class="rv-page-title mb-3 d-flex align-items-center gap-2">
-            <span th:replace="~{fragments/heroicons :: shieldCheck('heroicon-sm')}"></span> Integrity Verification
-        </h5>
+        <h5 class="rv-page-title mb-3"><i class="fa-solid fa-check-double"></i> Integrity Verification</h5>
         <div class="d-flex align-items-center gap-3 mb-3">
             <span class="status-badge"
                   th:classappend="${report.integrityReport.integrityStatus == 'OK'} ? 'status-ACTIVE' :
@@ -110,9 +102,7 @@
 
     <!-- Recommendations -->
     <div class="rv-card">
-        <h5 class="rv-page-title mb-3 d-flex align-items-center gap-2">
-            <span th:replace="~{fragments/heroicons :: lightBulb('heroicon-sm')}"></span> Recommendations
-        </h5>
+        <h5 class="rv-page-title mb-3"><i class="fa-solid fa-lightbulb"></i> Recommendations</h5>
         <ul class="mb-0">
             <li th:each="r : ${report.recommendations}" th:text="${r}" class="mb-1"></li>
         </ul>

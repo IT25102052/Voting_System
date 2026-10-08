@@ -6,14 +6,10 @@
 <div class="rv-page" style="max-width:880px">
     <div class="d-flex align-items-center justify-content-between mb-4">
         <div>
-            <h2 class="rv-page-title mb-0 d-flex align-items-center gap-2">
-                <span th:replace="~{fragments/heroicons :: scale('heroicon-md')}"></span> Review Advertisement
-            </h2>
+            <h2 class="rv-page-title mb-0"><i class="fa-solid fa-gavel"></i> Review Advertisement</h2>
             <span class="text-muted small">Compliance Evaluation &amp; Broadcast Authorization</span>
         </div>
-        <a th:href="@{/compliance/advertising}" class="btn btn-sm btn-outline-dark d-inline-flex align-items-center gap-1">
-            <span th:replace="~{fragments/heroicons :: arrowLeft('heroicon-sm')}"></span> Back to Queue
-        </a>
+        <a th:href="@{/compliance/advertising}" class="btn btn-sm btn-outline-dark"><i class="fa-solid fa-arrow-left"></i> Back to Queue</a>
     </div>
 
     <div th:if="${success}" class="alert alert-success alert-dismissible fade show"><span th:text="${success}"></span><button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
@@ -39,9 +35,7 @@
         </div>
 
         <div th:if="${advertisement.targetUrl}" class="mb-3 p-2 px-3" style="background:rgba(0,188,212,0.06);border-radius:6px;border:1px solid rgba(0,188,212,0.25);">
-            <div class="rv-mono small d-flex align-items-center gap-1" style="color:var(--rv-cyan);">
-                <span th:replace="~{fragments/heroicons :: arrowTopRightOnSquare('heroicon-sm')}"></span> SPONSOR TARGET LINK
-            </div>
+            <div class="rv-mono small" style="color:var(--rv-cyan);"><i class="fa-solid fa-arrow-up-right-from-square me-1"></i> SPONSOR TARGET LINK</div>
             <a th:href="${advertisement.targetUrl}" target="_blank" rel="noopener noreferrer" th:text="${advertisement.targetUrl}" class="small text-light"></a>
         </div>
 
@@ -56,19 +50,15 @@
     </div>
 
     <!-- Self-review warning -->
-    <div th:if="${isSelfReview}" class="alert alert-warning d-flex align-items-center gap-2">
-        <span th:replace="~{fragments/heroicons :: exclamationTriangle('heroicon-md text-warning flex-shrink-0')}"></span>
-        <div>
-            <strong>Separation of Duty Enforced:</strong> You created this advertisement and cannot approve or reject it.
-            Another Compliance Officer or Administrator must perform the compliance review.
-        </div>
+    <div th:if="${isSelfReview}" class="alert alert-warning">
+        <i class="fa-solid fa-triangle-exclamation me-2"></i>
+        <strong>Separation of Duty Enforced:</strong> You created this advertisement and cannot approve or reject it.
+        Another Compliance Officer or Administrator must perform the compliance review.
     </div>
 
     <!-- Decision & Session Confirmation Form -->
     <div th:if="${advertisement.status.name() == 'PENDING_REVIEW' and !isSelfReview}" class="rv-card mb-3">
-        <h5 class="rv-page-title mb-3 d-flex align-items-center gap-2">
-            <span th:replace="~{fragments/heroicons :: clipboardDocumentCheck('heroicon-sm')}"></span> Compliance Decision &amp; Session Authorization
-        </h5>
+        <h5 class="rv-page-title mb-3"><i class="fa-solid fa-clipboard-check"></i> Compliance Decision &amp; Session Authorization</h5>
 
         <div class="mb-3">
             <label class="form-label rv-mono small">COMPLIANCE REVIEW COMMENT / REASON</label>
@@ -77,9 +67,7 @@
 
         <!-- Target Voting Sessions Selection -->
         <div class="mb-4">
-            <label class="form-label rv-mono small mb-1 d-flex align-items-center gap-1">
-                <span th:replace="~{fragments/heroicons :: tv('heroicon-sm')}"></span> AUTHORIZE VOTING SESSIONS
-            </label>
+            <label class="form-label rv-mono small mb-1"><i class="fa-solid fa-tv me-1"></i> AUTHORIZE VOTING SESSIONS</label>
             <div class="text-muted small mb-2">Confirm which voting sessions are authorized to display this advertisement to viewers:</div>
 
             <div class="table-responsive" style="max-height:220px; overflow-y:auto; border:1px solid var(--rv-border); border-radius:8px;">
@@ -143,16 +131,16 @@
                 <input type="hidden" name="displayStartTime" id="approveStart">
                 <input type="hidden" name="displayEndTime" id="approveEnd">
                 <div id="approveSessionInputs"></div>
-                <button type="button" class="btn btn-accent d-inline-flex align-items-center gap-1" onclick="submitApprove()">
-                    <span th:replace="~{fragments/heroicons :: checkCircle('heroicon-sm')}"></span> Approve &amp; Broadcast in Selected Sessions
+                <button type="button" class="btn btn-accent" onclick="submitApprove()">
+                    <i class="fa-solid fa-check-circle me-1"></i> Approve &amp; Broadcast in Selected Sessions
                 </button>
             </form>
 
             <!-- Reject Form -->
             <form id="rejectForm" th:action="@{/compliance/advertising/{id}/reject(id=${advertisement.id})}" method="post" class="d-inline">
                 <input type="hidden" name="comment" id="rejectComment">
-                <button type="button" class="btn btn-outline-danger d-inline-flex align-items-center gap-1" onclick="submitReject()">
-                    <span th:replace="~{fragments/heroicons :: xCircle('heroicon-sm')}"></span> Reject with Reason
+                <button type="button" class="btn btn-outline-danger" onclick="submitReject()">
+                    <i class="fa-solid fa-times-circle me-1"></i> Reject with Reason
                 </button>
             </form>
         </div>
@@ -170,16 +158,14 @@
     <!-- Schedule summary -->
     <div th:if="${advertisement.status.name() == 'APPROVED' or advertisement.status.name() == 'ACTIVE'}" class="rv-card mb-3">
         <div class="d-flex align-items-center justify-content-between mb-3">
-            <h5 class="rv-page-title mb-0 d-flex align-items-center gap-2">
-                <span th:replace="~{fragments/heroicons :: calendarDays('heroicon-sm')}"></span> Display Schedule &amp; Authorized Sessions
-            </h5>
-            <a th:href="@{/compliance/advertising/{id}/schedule(id=${advertisement.id})}" class="btn btn-sm btn-accent d-inline-flex align-items-center gap-1">
-                <span th:replace="~{fragments/heroicons :: pencil('heroicon-sm')}"></span> Edit Schedule
+            <h5 class="rv-page-title mb-0"><i class="fa-solid fa-calendar-check"></i> Display Schedule &amp; Authorized Sessions</h5>
+            <a th:href="@{/compliance/advertising/{id}/schedule(id=${advertisement.id})}" class="btn btn-sm btn-accent">
+                <i class="fa-solid fa-edit me-1"></i> Edit Schedule
             </a>
         </div>
 
-        <div th:if="${#lists.isEmpty(advertisement.sessions)}" class="text-muted small d-flex align-items-center gap-1">
-            <span th:replace="~{fragments/heroicons :: informationCircle('heroicon-sm')}"></span> Not currently assigned to any sessions. Click "Edit Schedule" to assign.
+        <div th:if="${#lists.isEmpty(advertisement.sessions)}" class="text-muted small">
+            <i class="fa-solid fa-info-circle"></i> Not currently assigned to any sessions. Click "Edit Schedule" to assign.
         </div>
         <div th:unless="${#lists.isEmpty(advertisement.sessions)}">
             <div class="rv-mono small mb-2" style="color:var(--rv-gold)">ACTIVE IN SESSIONS:</div>

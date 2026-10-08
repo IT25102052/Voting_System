@@ -6,13 +6,14 @@
 <div class="rv-page">
     <div class="d-flex align-items-center justify-content-between mb-4">
         <div>
-            <h2 class="rv-page-title mb-0 d-flex align-items-center gap-2">
-                <span th:replace="~{fragments/heroicons :: rectangleGroup('heroicon-md')}"></span> Advertising Compliance &amp; Oversight
+            <h2 class="rv-page-title mb-1">
+                <i class="fa-solid fa-shield-halved"></i> Advertising Compliance &amp; Oversight
             </h2>
+            <p class="text-muted small mb-0">Independent review, session authorization, and broadcast schedule monitoring</p>
         </div>
         <div class="d-flex gap-2">
-            <a th:href="@{/compliance/audit-logs(eventType='ADVERTISEMENT_APPROVED')}" class="btn btn-sm btn-outline-dark d-inline-flex align-items-center gap-1">
-                <span th:replace="~{fragments/heroicons :: clipboardList('heroicon-sm')}"></span> Advertising Audit Trail
+            <a th:href="@{/compliance/audit-logs(eventType='ADVERTISEMENT_APPROVED')}" class="btn btn-sm btn-outline-dark">
+                <i class="fa-solid fa-list-check me-1"></i> Advertising Audit Trail
             </a>
         </div>
     </div>
@@ -26,7 +27,7 @@
             <a th:href="@{/compliance/advertising(tab='PENDING_REVIEW')}" class="text-decoration-none">
                 <div class="rv-card text-center h-100" th:style="${currentTab == 'PENDING_REVIEW' ? 'border-color:#ffc857' : ''}">
                     <div class="rv-mono fw-bold" style="font-size:2.2rem;color:#ffc857" th:text="${pending}">0</div>
-                    <small class="text-muted d-inline-flex align-items-center gap-1"><span th:replace="~{fragments/heroicons :: clock('heroicon-sm')}"></span> Pending Review</small>
+                    <small class="text-muted"><i class="fa-solid fa-clock me-1"></i> Pending Review</small>
                 </div>
             </a>
         </div>
@@ -34,7 +35,7 @@
             <a th:href="@{/compliance/advertising(tab='APPROVED')}" class="text-decoration-none">
                 <div class="rv-card text-center h-100" th:style="${currentTab == 'APPROVED' ? 'border-color:#2af0a0' : ''}">
                     <div class="rv-mono fw-bold" style="font-size:2.2rem;color:#2af0a0" th:text="${approved}">0</div>
-                    <small class="text-muted d-inline-flex align-items-center gap-1"><span th:replace="~{fragments/heroicons :: checkCircle('heroicon-sm')}"></span> Approved</small>
+                    <small class="text-muted"><i class="fa-solid fa-check-circle me-1"></i> Approved</small>
                 </div>
             </a>
         </div>
@@ -42,7 +43,7 @@
             <a th:href="@{/compliance/advertising(tab='ACTIVE')}" class="text-decoration-none">
                 <div class="rv-card text-center h-100" th:style="${currentTab == 'ACTIVE' ? 'border-color:var(--rv-pink)' : ''}">
                     <div class="rv-mono fw-bold" style="font-size:2.2rem;color:var(--rv-pink)" th:text="${active}">0</div>
-                    <small class="text-muted d-inline-flex align-items-center gap-1"><span th:replace="~{fragments/heroicons :: signal('heroicon-sm')}"></span> Active / Broadcasting</small>
+                    <small class="text-muted"><i class="fa-solid fa-tower-broadcast me-1"></i> Active / Broadcasting</small>
                 </div>
             </a>
         </div>
@@ -50,7 +51,7 @@
             <a th:href="@{/compliance/advertising(tab='REJECTED')}" class="text-decoration-none">
                 <div class="rv-card text-center h-100" th:style="${currentTab == 'REJECTED' ? 'border-color:#ff5c72' : ''}">
                     <div class="rv-mono fw-bold" style="font-size:2.2rem;color:#ff5c72" th:text="${rejected}">0</div>
-                    <small class="text-muted d-inline-flex align-items-center gap-1"><span th:replace="~{fragments/heroicons :: xCircle('heroicon-sm')}"></span> Rejected</small>
+                    <small class="text-muted"><i class="fa-solid fa-ban me-1"></i> Rejected</small>
                 </div>
             </a>
         </div>
@@ -61,33 +62,33 @@
         <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3 pb-2" style="border-bottom:1px solid var(--rv-border);">
             <ul class="nav nav-pills gap-2 mb-0">
                 <li class="nav-item">
-                    <a class="nav-link btn-sm d-inline-flex align-items-center gap-1" th:classappend="${currentTab == 'PENDING_REVIEW' ? 'active' : 'text-light'}"
+                    <a class="nav-link btn-sm" th:classappend="${currentTab == 'PENDING_REVIEW' ? 'active' : 'text-light'}"
                        th:href="@{/compliance/advertising(tab='PENDING_REVIEW')}">
-                        <span th:replace="~{fragments/heroicons :: clock('heroicon-sm')}"></span> Pending Queue (<span th:text="${pending}"></span>)
+                        <i class="fa-solid fa-clock me-1"></i> Pending Queue (<span th:text="${pending}"></span>)
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link btn-sm d-inline-flex align-items-center gap-1" th:classappend="${currentTab == 'APPROVED' ? 'active' : 'text-light'}"
+                    <a class="nav-link btn-sm" th:classappend="${currentTab == 'APPROVED' ? 'active' : 'text-light'}"
                        th:href="@{/compliance/advertising(tab='APPROVED')}">
-                        <span th:replace="~{fragments/heroicons :: checkCircle('heroicon-sm')}"></span> Approved (<span th:text="${approved}"></span>)
+                        <i class="fa-solid fa-check-circle me-1"></i> Approved (<span th:text="${approved}"></span>)
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link btn-sm d-inline-flex align-items-center gap-1" th:classappend="${currentTab == 'ACTIVE' ? 'active' : 'text-light'}"
+                    <a class="nav-link btn-sm" th:classappend="${currentTab == 'ACTIVE' ? 'active' : 'text-light'}"
                        th:href="@{/compliance/advertising(tab='ACTIVE')}">
-                        <span th:replace="~{fragments/heroicons :: signal('heroicon-sm')}"></span> Active (<span th:text="${active}"></span>)
+                        <i class="fa-solid fa-tower-broadcast me-1"></i> Active (<span th:text="${active}"></span>)
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link btn-sm d-inline-flex align-items-center gap-1" th:classappend="${currentTab == 'REJECTED' ? 'active' : 'text-light'}"
+                    <a class="nav-link btn-sm" th:classappend="${currentTab == 'REJECTED' ? 'active' : 'text-light'}"
                        th:href="@{/compliance/advertising(tab='REJECTED')}">
-                        <span th:replace="~{fragments/heroicons :: xCircle('heroicon-sm')}"></span> Rejected (<span th:text="${rejected}"></span>)
+                        <i class="fa-solid fa-ban me-1"></i> Rejected (<span th:text="${rejected}"></span>)
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link btn-sm d-inline-flex align-items-center gap-1" th:classappend="${currentTab == 'ALL' ? 'active' : 'text-light'}"
+                    <a class="nav-link btn-sm" th:classappend="${currentTab == 'ALL' ? 'active' : 'text-light'}"
                        th:href="@{/compliance/advertising(tab='ALL')}">
-                        <span th:replace="~{fragments/heroicons :: clipboardList('heroicon-sm')}"></span> All Ads
+                        <i class="fa-solid fa-list me-1"></i> All Ads
                     </a>
                 </li>
             </ul>
@@ -112,8 +113,8 @@
                     <td class="rv-mono" th:text="${ad.id}"></td>
                     <td>
                         <strong th:text="${ad.title}"></strong>
-                        <div th:if="${ad.targetUrl}" class="small text-muted d-flex align-items-center gap-1">
-                            <span th:replace="~{fragments/heroicons :: link('heroicon-sm')}"></span><span th:text="${ad.targetUrl}"></span>
+                        <div th:if="${ad.targetUrl}" class="small text-muted">
+                            <i class="fa-solid fa-link me-1"></i><span th:text="${ad.targetUrl}"></span>
                         </div>
                     </td>
                     <td class="small text-muted" th:text="${ad.campaign.name}"></td>
@@ -126,20 +127,20 @@
                     </td>
                     <td class="rv-mono small text-muted" th:text="${#temporals.format(ad.createdDate, 'dd MMM HH:mm')}"></td>
                     <td>
-                        <a th:if="${ad.status.name() == 'PENDING_REVIEW'}" th:href="@{/compliance/advertising/{id}(id=${ad.id})}" class="btn btn-sm btn-accent d-inline-flex align-items-center gap-1">
-                            <span th:replace="~{fragments/heroicons :: scale('heroicon-sm')}"></span> Review
+                        <a th:if="${ad.status.name() == 'PENDING_REVIEW'}" th:href="@{/compliance/advertising/{id}(id=${ad.id})}" class="btn btn-sm btn-accent">
+                            <i class="fa-solid fa-gavel me-1"></i> Review
                         </a>
-                        <a th:if="${ad.status.name() != 'PENDING_REVIEW'}" th:href="@{/compliance/advertising/{id}(id=${ad.id})}" class="btn btn-sm btn-outline-dark d-inline-flex align-items-center gap-1">
-                            <span th:replace="~{fragments/heroicons :: eye('heroicon-sm')}"></span> View
+                        <a th:if="${ad.status.name() != 'PENDING_REVIEW'}" th:href="@{/compliance/advertising/{id}(id=${ad.id})}" class="btn btn-sm btn-outline-dark">
+                            <i class="fa-solid fa-eye me-1"></i> View
                         </a>
-                        <a th:if="${ad.status.name() == 'APPROVED' or ad.status.name() == 'ACTIVE'}" th:href="@{/compliance/advertising/{id}/schedule(id=${ad.id})}" class="btn btn-sm btn-outline-warning ms-1 d-inline-flex align-items-center gap-1">
-                            <span th:replace="~{fragments/heroicons :: calendarDays('heroicon-sm')}"></span> Schedule
+                        <a th:if="${ad.status.name() == 'APPROVED' or ad.status.name() == 'ACTIVE'}" th:href="@{/compliance/advertising/{id}/schedule(id=${ad.id})}" class="btn btn-sm btn-outline-warning ms-1">
+                            <i class="fa-solid fa-calendar me-1"></i> Schedule
                         </a>
                     </td>
                 </tr>
                 <tr th:if="${#lists.isEmpty(advertisements)}">
                     <td colspan="8" class="text-center text-muted py-4">
-                        <span th:replace="~{fragments/heroicons :: checkCircle('heroicon-sm me-2')}"></span>No advertisements found in this view.
+                        <i class="fa-solid fa-check-circle me-2"></i>No advertisements found in this view.
                     </td>
                 </tr>
                 </tbody>

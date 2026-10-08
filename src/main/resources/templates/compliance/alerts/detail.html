@@ -12,11 +12,11 @@
 <div class="rv-page" style="max-width:800px">
 
     <div class="d-flex align-items-center gap-3 mb-4">
-        <a th:href="@{/compliance/alerts}" class="btn btn-sm btn-outline-dark d-inline-flex align-items-center gap-1">
-            <span th:replace="~{fragments/heroicons :: arrowLeft('heroicon-sm')}"></span> Alerts
+        <a th:href="@{/compliance/alerts}" class="btn btn-sm btn-outline-dark">
+            <i class="fa-solid fa-arrow-left"></i> Alerts
         </a>
-        <h2 class="rv-page-title mb-0 d-flex align-items-center gap-2">
-            <span th:replace="~{fragments/heroicons :: bellAlert('heroicon-md')}"></span> Alert #<span th:text="${alert.id}"></span>
+        <h2 class="rv-page-title mb-0">
+            <i class="fa-solid fa-bell"></i> Alert #<span th:text="${alert.id}"></span>
         </h2>
         <span class="status-badge"
               th:classappend="'severity-' + ${alert.severity}"
@@ -84,14 +84,14 @@
     </div>
 
     <div class="d-flex gap-2 mt-3">
-        <a class="btn btn-sm btn-outline-dark d-inline-flex align-items-center gap-1"
+        <a class="btn btn-sm btn-outline-dark"
            th:href="@{/compliance/alerts/{id}/edit(id=${alert.id})}">
-            <span th:replace="~{fragments/heroicons :: pencil('heroicon-sm')}"></span> Edit Details
+            <i class="fa-solid fa-pen"></i> Edit Details
         </a>
         <a th:if="${alert.sessionId != null}"
-           class="btn btn-sm btn-outline-dark d-inline-flex align-items-center gap-1"
+           class="btn btn-sm btn-outline-dark"
            th:href="@{/compliance/anomalies(sessionId=${alert.sessionId})}">
-            <span th:replace="~{fragments/heroicons :: exclamationTriangle('heroicon-sm')}"></span> Anomaly Detection
+            <i class="fa-solid fa-bug"></i> Anomaly Detection
         </a>
     </div>
 </div>

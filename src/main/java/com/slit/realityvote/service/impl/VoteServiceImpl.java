@@ -32,7 +32,7 @@ public class VoteServiceImpl implements VoteService {
     private final ComplianceReportRecordService reportRecordService;
 
     @Override
-    @Transactional
+    @Transactional(noRollbackFor = IllegalStateException.class)
     public Vote castVote(Long sessionId, Long contestantId, Long voterId) {
         VotingSession session = sessionRepository.findById(sessionId)
                 .orElseThrow(() -> new EntityNotFoundException("Voting session not found with id: " + sessionId));

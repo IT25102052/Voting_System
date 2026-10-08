@@ -8,11 +8,11 @@
 
     <!-- Page header -->
     <div class="d-flex align-items-center gap-3 mb-4">
-        <a th:href="@{/compliance/dashboard}" class="btn btn-sm btn-outline-dark d-inline-flex align-items-center gap-1">
-            <span th:replace="~{fragments/heroicons :: arrowLeft('heroicon-sm')}"></span> Dashboard
+        <a th:href="@{/compliance/dashboard}" class="btn btn-sm btn-outline-dark">
+            <i class="fa-solid fa-arrow-left"></i> Dashboard
         </a>
-        <h2 class="rv-page-title mb-0 d-flex align-items-center gap-2">
-            <span th:replace="~{fragments/heroicons :: chartBar('heroicon-md')}"></span> Vote Activity Chart
+        <h2 class="rv-page-title mb-0">
+            <i class="fa-solid fa-chart-column"></i> Vote Activity Chart
         </h2>
     </div>
 
@@ -35,15 +35,15 @@
             </select>
         </div>
         <div class="col-md-4">
-            <button class="btn btn-outline-dark w-100 d-inline-flex align-items-center justify-content-center gap-1" type="submit">
-                <span th:replace="~{fragments/heroicons :: magnifyingGlass('heroicon-sm')}"></span> Load Chart
+            <button class="btn btn-outline-dark w-100" type="submit">
+                <i class="fa-solid fa-magnifying-glass"></i> Load Chart
             </button>
         </div>
     </form>
 
     <!-- Empty state -->
     <div th:unless="${activity}" class="rv-card text-center py-5">
-        <span th:replace="~{fragments/heroicons :: chartBar('heroicon-xl mb-3')}" style="color:var(--rv-cyan);opacity:.3;display:inline-block;"></span>
+        <i class="fa-solid fa-chart-column fa-2x mb-3" style="color:var(--rv-cyan);opacity:.3"></i>
         <p class="text-muted mb-0">Select a session above to load the activity chart.</p>
     </div>
 
@@ -60,15 +60,15 @@
                 <span class="text-muted small">Data source:</span>
                 <!-- Auto-snapshot badge (DATABASE mode) -->
                 <span th:if="${viewingRecord != null and viewingRecord.autoSnapshot}"
-                      class="badge border d-inline-flex align-items-center gap-1"
+                      class="badge border"
                       style="background:#0d1b1e;color:#00e5ff;border-color:#00e5ff44 !important;">
-                    <span th:replace="~{fragments/heroicons :: circleStack('heroicon-sm')}"></span> Auto-snapshot
+                    <i class="fa-solid fa-database"></i> Auto-snapshot
                 </span>
                 <!-- Historical saved-report badge -->
                 <span th:if="${viewingRecord != null and !viewingRecord.autoSnapshot}"
-                      class="badge border d-inline-flex align-items-center gap-1"
+                      class="badge border"
                       style="background:#1e1a10;color:#ffc857;border-color:#ffc85744 !important;">
-                    <span th:replace="~{fragments/heroicons :: clock('heroicon-sm')}"></span>
+                    <i class="fa-solid fa-clock-rotate-left"></i>
                     Saved Report #<span th:text="${viewingRecord.id}"></span>
                 </span>
             </div>
@@ -99,9 +99,9 @@
             <form method="post"
                   th:action="@{/compliance/activity/{sid}/refresh(sid=${selectedSessionId})}">
                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
-                <button class="btn btn-sm btn-outline-dark d-inline-flex align-items-center gap-1" type="submit"
+                <button class="btn btn-sm btn-outline-dark" type="submit"
                         title="Query the live votes table now and update the snapshot">
-                    <span th:replace="~{fragments/heroicons :: arrowPath('heroicon-sm')}"></span> Refresh from live DB
+                    <i class="fa-solid fa-rotate"></i> Refresh from live DB
                 </button>
             </form>
         </div>
@@ -110,7 +110,7 @@
         <div th:if="${viewingRecord != null and viewingRecord.autoSnapshot}"
              class="alert py-2 px-3 mb-4 d-flex gap-2 align-items-center"
              style="background:#0d1b1e;border:1px solid #00e5ff33;font-size:.83rem;color:#9ba3b0;">
-            <span th:replace="~{fragments/heroicons :: circleStack('heroicon-md')}" style="color:#00e5ff"></span>
+            <i class="fa-solid fa-database" style="color:#00e5ff"></i>
             <span>
                 Showing the <strong style="color:#00e5ff">database auto-snapshot</strong>
                 — updated automatically after every vote event.
@@ -124,7 +124,7 @@
         <div th:if="${viewingRecord != null and !viewingRecord.autoSnapshot}"
              class="alert py-2 px-3 mb-4 d-flex gap-2 align-items-center"
              style="background:#1e1a10;border:1px solid #ffc85733;font-size:.83rem;color:#9ba3b0;">
-            <span th:replace="~{fragments/heroicons :: clock('heroicon-md')}" style="color:#ffc857"></span>
+            <i class="fa-solid fa-clock-rotate-left" style="color:#ffc857"></i>
             <span>
                 Viewing <strong style="color:#ffc857">Saved Report
                 #<span th:text="${viewingRecord.id}"></span></strong>
@@ -169,8 +169,8 @@
             <div class="col-lg-8">
                 <div class="rv-card" style="min-height:380px">
                     <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h5 class="rv-page-title mb-0 d-flex align-items-center gap-2">
-                            <span th:replace="~{fragments/heroicons :: chartBar('heroicon-sm')}"></span> Votes per Contestant
+                        <h5 class="rv-page-title mb-0">
+                            <i class="fa-solid fa-chart-column"></i> Votes per Contestant
                         </h5>
                         <!-- Colour legend -->
                         <div class="d-flex gap-3" style="font-size:.75rem;">
@@ -194,7 +194,7 @@
                          class="d-flex align-items-center justify-content-center"
                          style="height:300px;">
                         <div class="text-center text-muted">
-                            <span th:replace="~{fragments/heroicons :: inbox('heroicon-xl mb-2')}" style="opacity:.3;display:inline-block;"></span>
+                            <i class="fa-solid fa-inbox fa-2x mb-2" style="opacity:.3"></i>
                             <p class="mb-0 small">No votes recorded yet for this session.</p>
                             <p class="mb-0 small text-muted">Cast some votes, then click
                                 <em>Refresh from live DB</em>.</p>
@@ -205,9 +205,9 @@
                          th:unless="${activity.contestantStats.empty}"
                          style="height:300px;"></div>
 
-                    <p class="text-muted small mt-2 mb-0 d-flex align-items-center gap-1"
+                    <p class="text-muted small mt-2 mb-0"
                        th:unless="${activity.contestantStats.empty}">
-                        <span th:replace="~{fragments/heroicons :: informationCircle('heroicon-sm')}"></span>
+                        <i class="fa-solid fa-circle-info"></i>
                         Click any bar to view that contestant's compliance profile.
                     </p>
                 </div>
@@ -219,7 +219,7 @@
                      style="min-height:380px;display:flex;flex-direction:column;
                             justify-content:center;align-items:center;">
                     <div id="profileEmpty" class="text-center text-muted py-4">
-                        <span th:replace="~{fragments/heroicons :: arrowLeft('heroicon-xl mb-3')}" style="opacity:.3;display:inline-block;"></span>
+                        <i class="fa-solid fa-arrow-left fa-2x mb-3" style="opacity:.3"></i>
                         <p class="mb-0">Click a bar to view<br>contestant profile</p>
                     </div>
                     <div id="profileContent" style="display:none;width:100%">
@@ -241,8 +241,8 @@
                                     style="color:var(--rv-cyan)"></td></tr>
                             <tr id="pc-flagged-row" style="display:none">
                                 <th style="color:var(--rv-text-muted)">Anomaly</th>
-                                <td><span class="status-badge status-ELIMINATED d-inline-flex align-items-center gap-1">
-                                    <span th:replace="~{fragments/heroicons :: exclamationTriangle('heroicon-sm')}"></span> Flagged
+                                <td><span class="status-badge status-ELIMINATED">
+                                    <i class="fa-solid fa-triangle-exclamation"></i> Flagged
                                 </span></td></tr>
                             </tbody>
                         </table>
@@ -252,8 +252,8 @@
                                  max-height:100px;overflow-y:auto;color:#ccc;"></div>
                         </div>
                         <div class="d-grid">
-                            <a id="pc-link" href="#" class="btn btn-sm btn-outline-dark d-inline-flex align-items-center justify-content-center gap-1">
-                                <span th:replace="~{fragments/heroicons :: clipboardList('heroicon-sm')}"></span> Audit History
+                            <a id="pc-link" href="#" class="btn btn-sm btn-outline-dark">
+                                <i class="fa-solid fa-clock-rotate-left"></i> Audit History
                             </a>
                         </div>
                     </div>
@@ -263,17 +263,17 @@
 
         <!-- Quick actions -->
         <div class="d-flex gap-2 mt-3 justify-content-end">
-            <a class="btn btn-sm btn-outline-dark d-inline-flex align-items-center gap-1"
+            <a class="btn btn-sm btn-outline-dark"
                th:href="@{/compliance/anomalies(sessionId=${activity.sessionId})}">
-                <span th:replace="~{fragments/heroicons :: exclamationTriangle('heroicon-sm')}"></span> Anomaly Detection
+                <i class="fa-solid fa-bug"></i> Anomaly Detection
             </a>
-            <a class="btn btn-sm btn-outline-dark d-inline-flex align-items-center gap-1"
+            <a class="btn btn-sm btn-outline-dark"
                th:href="@{/compliance/verify/{id}(id=${activity.sessionId})}">
-                <span th:replace="~{fragments/heroicons :: shieldCheck('heroicon-sm')}"></span> Verify Integrity
+                <i class="fa-solid fa-check-double"></i> Verify Integrity
             </a>
-            <a class="btn btn-sm btn-accent d-inline-flex align-items-center gap-1"
+            <a class="btn btn-sm btn-accent"
                th:href="@{/compliance/reports/{id}(id=${activity.sessionId})}">
-                <span th:replace="~{fragments/heroicons :: documentText('heroicon-sm')}"></span> Full Report
+                <i class="fa-solid fa-file-alt"></i> Full Report
             </a>
         </div>
 
@@ -281,9 +281,20 @@
 
 </div><!-- /rv-page -->
 
-<!-- ── Apache ECharts Script ─────────────────────────────────────────── -->
+<!-- ── Highcharts CDN ────────────────────────────────────────────────────── -->
+<script src="https://code.highcharts.com/highcharts.js"></script>
+
 <script th:if="${chartDataJson}" th:inline="javascript">
 /*<![CDATA[*/
+
+// ── Data embedded by Thymeleaf ────────────────────────────────────────────
+//
+//  DATABASE mode: comes from compliance_report_records.contestant_stats_json
+//                 which is updated after every vote event.
+//  HISTORICAL:    comes from a specific saved ComplianceReportRecord.
+//
+//  Either way each point carries the contestant's database id, so the click
+//  handler never needs to parse the x-axis label text.
 
 const CHART_DATA = JSON.parse(/*[[${chartDataJson}]]*/ "[]");
 
@@ -301,7 +312,7 @@ function openProfile(point) {
     document.getElementById('pc-id').textContent     = '#' + point.id;
     document.getElementById('pc-talent').textContent = point.talent || '—';
     document.getElementById('pc-town').textContent   = point.town   || '—';
-    document.getElementById('pc-votes').textContent  = (point.y || 0).toLocaleString();
+    document.getElementById('pc-votes').textContent  = point.y.toLocaleString();
     document.getElementById('pc-bio').textContent    = point.bio    || '—';
     document.getElementById('pc-link').href =
         '/compliance/audit-logs/entity/Contestant/' + point.id;
@@ -319,99 +330,88 @@ function openProfile(point) {
 
     const panel = document.getElementById('profilePanel');
     panel.style.transition = 'box-shadow .25s';
-    panel.style.boxShadow  = '0 0 0 2px ' + (point.color || '#00e5ff');
+    panel.style.boxShadow  = '0 0 0 2px ' + point.color;
     setTimeout(() => { panel.style.boxShadow = ''; }, 700);
 }
 
-// ── Apache ECharts Integration ────────────────────────────────────────────
-const chartDom = document.getElementById('activityChart');
-if (chartDom) {
-    const myChart = echarts.init(chartDom);
-
-    const isLight = document.documentElement.getAttribute('data-bs-theme') === 'light';
-    const textColor = isLight ? '#4b5563' : '#8a8f9c';
-    const splitLineColor = isLight ? '#e5e7eb' : '#1e2130';
-    const axisLineColor = isLight ? '#d1d5db' : '#2d3140';
-    const tooltipBg = isLight ? '#ffffff' : '#1a1c22';
-    const tooltipBorder = isLight ? '#e5e7eb' : '#00e5ff';
-    const tooltipText = isLight ? '#111827' : '#e4e7ef';
-
-    const categories = CHART_DATA.map(p => p.name || 'Unknown');
-    const seriesData = CHART_DATA.map(p => ({
-        value: p.y || 0,
-        itemStyle: {
-            color: p.color || '#00e5ff',
-            borderRadius: [4, 4, 0, 0]
-        },
-        rawPoint: p
-    }));
-
-    const option = {
+// ── Highcharts ────────────────────────────────────────────────────────────
+Highcharts.chart('activityChart', {
+    chart: {
+        type: 'column',
         backgroundColor: 'transparent',
-        grid: { top: 25, right: 15, bottom: 45, left: 45, containLabel: false },
-        tooltip: {
-            trigger: 'item',
-            backgroundColor: tooltipBg,
-            borderColor: tooltipBorder,
-            borderWidth: 1,
-            textStyle: { color: tooltipText, fontFamily: "'Inter', sans-serif" },
-            formatter: function(params) {
-                const p = params.data.rawPoint;
-                let html = `<b>${p.name}</b><br/>Votes: <b>${(p.y || 0).toLocaleString()}</b><br/>Status: ${p.status || '—'}`;
-                if (p.flagged) {
-                    html += '<br/><span style="color:#ff5c72">&#9888; Anomaly flagged</span>';
-                }
-                return html;
-            }
-        },
-        xAxis: {
-            type: 'category',
-            data: categories,
-            axisLine: { lineStyle: { color: axisLineColor } },
-            axisLabel: {
-                color: textColor,
-                fontSize: 11,
-                formatter: function(val) {
-                    return val.length > 14 ? val.substring(0, 14) + '…' : val;
-                }
-            }
-        },
-        yAxis: {
-            type: 'value',
-            min: 0,
-            splitLine: { lineStyle: { color: splitLineColor } },
-            axisLabel: { color: textColor, fontSize: 11 }
-        },
-        series: [{
-            name: 'Votes',
-            type: 'bar',
-            barMaxWidth: 45,
-            data: seriesData,
-            label: {
-                show: true,
-                position: 'top',
-                color: textColor,
-                fontSize: 10,
-                formatter: function(params) {
-                    return params.value > 0 ? Number(params.value).toLocaleString() : '';
-                }
-            }
-        }]
-    };
+        style: { fontFamily: "'Courier New', monospace" },
+        animation: { duration: 500 }
+    },
+    title:   { text: '' },
+    credits: { enabled: false },
+    legend:  { enabled: false },
 
-    myChart.setOption(option);
+    xAxis: {
+        type: 'category',
+        labels: {
+            style: { color: '#9ba3b0', fontSize: '11px' },
+            formatter: function () {
+                const v = this.value;
+                return v.length > 14 ? v.substring(0, 14) + '…' : v;
+            }
+        },
+        lineColor: '#2d3140',
+        tickColor: '#2d3140'
+    },
 
-    myChart.on('click', function(params) {
-        if (params && params.data && params.data.rawPoint) {
-            openProfile(params.data.rawPoint);
+    yAxis: {
+        title: { text: 'Votes', style: { color: '#9ba3b0' } },
+        labels: { style: { color: '#9ba3b0' } },
+        gridLineColor: '#1e2130',
+        allowDecimals: false,
+        min: 0
+    },
+
+    tooltip: {
+        backgroundColor: '#1a1c22',
+        borderColor: '#00e5ff',
+        style: { color: '#e4e7ef' },
+        useHTML: true,
+        formatter: function () {
+            const p = this.point;
+            let html = '<b>' + p.name + '</b><br>'
+                     + 'Votes: <b>' + Highcharts.numberFormat(p.y, 0) + '</b><br>'
+                     + 'Status: ' + (p.status || '—');
+            if (p.flagged) {
+                html += '<br><span style="color:#ff5c72">&#9888; Anomaly flagged</span>';
+            }
+            return html;
         }
-    });
+    },
 
-    window.addEventListener('resize', () => { myChart.resize(); });
-    window.addEventListener('themeChanged', () => {
-        myChart.resize();
-    });
-}
+    plotOptions: {
+        column: {
+            borderRadius: 4,
+            borderWidth: 0,
+            cursor: 'pointer',
+            point: {
+                events: {
+                    click: function () { openProfile(this); }
+                }
+            },
+            dataLabels: {
+                enabled: true,
+                style: { color: '#9ba3b0', fontSize: '10px', fontWeight: 'normal' },
+                formatter: function () {
+                    return this.y > 0 ? Highcharts.numberFormat(this.y, 0) : '';
+                }
+            },
+            states: { hover: { brightness: 0.15 } }
+        }
+    },
+
+    series: [{
+        name: 'Votes',
+        colorByPoint: true,
+        data: CHART_DATA
+    }]
+});
+
 /*]]>*/
 </script>
 

@@ -55,6 +55,8 @@ public class VoteController {
             redirectAttributes.addFlashAttribute("successMessage", "Your vote has been successfully recorded.");
         } catch (IllegalStateException ex) {
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+        } catch (org.springframework.dao.DataIntegrityViolationException ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", "You have already voted for this contestant.");
         }
         return "redirect:/vote/" + sessionId;
     }

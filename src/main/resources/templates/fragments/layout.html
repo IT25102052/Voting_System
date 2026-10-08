@@ -4,267 +4,151 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title th:text="${title} + ' | Reality Vote'">Reality Vote</title>
-    <!-- Early theme init script to avoid flash -->
-    <script>
-        (function() {
-            var savedTheme = localStorage.getItem('rv-theme') || 'dark';
-            document.documentElement.setAttribute('data-bs-theme', savedTheme);
-            if (savedTheme === 'light') {
-                document.documentElement.classList.add('light');
-                document.documentElement.classList.remove('dark');
-            } else {
-                document.documentElement.classList.add('dark');
-                document.documentElement.classList.remove('light');
-            }
-        })();
-    </script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link rel="stylesheet" th:href="@{/css/app.css}">
-    <!-- Apache ECharts for Enterprise Analytics & Live Streaming Visualizations -->
-    <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" defer></script>
 </head>
 <body>
 <nav th:fragment="navbar" class="navbar navbar-expand-lg navbar-dark rv-navbar">
     <div class="container">
-        <a class="navbar-brand fw-bold d-flex align-items-center gap-2" th:href="@{/}">
-            <span><i class="fa-solid fa-star text-warning"></i> Reality<span class="text-accent">Vote</span></span>
-            <span class="flowbite-live-pill" title="Live Broadcast Stream Active">
-                <span class="live-pulse-dot"></span>
-                <span>LIVE</span>
-            </span>
+        <a class="navbar-brand fw-bold" th:href="@{/}">
+            <i class="fa-solid fa-star"></i> Reality<span class="text-accent">Vote</span>
+            <span style="width:7px;height:7px;background:#ff1ee9;border-radius:50%;box-shadow:0 0 0 3px rgba(255,30,233,.25);display:inline-block;margin-left:.2rem;" title="Live"></span>
         </a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu" aria-controls="navMenu" aria-expanded="false" aria-label="Toggle navigation">
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navMenu">
-            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                <!-- ═══ ADMINISTRATOR MENUS ═══ -->
-                <li class="nav-item dropdown" sec:authorize="hasRole('ADMINISTRATOR')">
-                    <a class="nav-link dropdown-toggle" href="#" id="adminShowsDrop" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="fa-solid fa-tv me-1"></i> Production
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item" sec:authorize="hasRole('ADMINISTRATOR')">
+                    <a class="nav-link" th:href="@{/admin/shows}">
+                        <i class="fa-solid fa-tv"></i> Manage Shows
                     </a>
-                    <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="adminShowsDrop">
-                        <li><a class="dropdown-item" th:href="@{/admin/shows}"><i class="fa-solid fa-film me-2 text-info"></i>Manage Shows</a></li>
-                        <li><a class="dropdown-item" th:href="@{/admin/voting-sessions}"><i class="fa-solid fa-square-poll-vertical me-2 text-warning"></i>Voting Sessions</a></li>
-                        <li><a class="dropdown-item" th:href="@{/staff/contestants}"><i class="fa-solid fa-users me-2 text-primary"></i>Contestants Roster</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" th:href="@{/admin/judges}"><i class="fa-solid fa-gavel me-2 text-danger"></i>Judges &amp; Panels</a></li>
-                    </ul>
                 </li>
-
-                <!-- Contestant Staff only (non-admin) -->
-                <li class="nav-item" sec:authorize="hasRole('CONTESTANT_STAFF') and !hasRole('ADMINISTRATOR')">
+                <li class="nav-item" sec:authorize="hasRole('ADMINISTRATOR')">
+                    <a class="nav-link" th:href="@{/admin/voting-sessions}">
+                        <i class="fa-solid fa-square-poll-vertical"></i> Voting Sessions
+                    </a>
+                </li>
+                <li class="nav-item" sec:authorize="hasAnyRole('ADMINISTRATOR','CONTESTANT_STAFF')">
                     <a class="nav-link" th:href="@{/staff/contestants}">
-                        <i class="fa-solid fa-users me-1"></i> Contestants
+                        <i class="fa-solid fa-users"></i> Contestants
                     </a>
                 </li>
-
-                <!-- ═══ COMPLIANCE MENUS (Heroicons Powered) ═══ -->
-                <li class="nav-item dropdown" sec:authorize="hasAnyRole('ADMINISTRATOR','COMPLIANCE_OFFICER')">
-                    <a class="nav-link dropdown-toggle d-inline-flex align-items-center" href="#" id="complianceDrop" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <svg class="heroicon me-1 text-info" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" /></svg>
-                        <span>Compliance</span>
-                    </a>
-                    <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="complianceDrop">
-                        <li><a class="dropdown-item d-flex align-items-center" th:href="@{/compliance/dashboard}"><svg class="heroicon me-2 text-info" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z" /></svg> Overview Dashboard</a></li>
-                        <li><a class="dropdown-item d-flex align-items-center" th:href="@{/compliance/monitoring}"><svg class="heroicon me-2 text-success" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M9.348 14.652a3.75 3.75 0 0 1 0-5.304m5.304 0a3.75 3.75 0 0 1 0 5.304m-7.425 2.121a6.75 6.75 0 0 1 0-9.546m9.546 0a6.75 6.75 0 0 1 0 9.546M5.106 18.894c-3.808-3.808-3.808-9.98 0-13.789m13.788 0c3.808 3.808 3.808 9.98 0 13.788M12 12h.008v.008H12V12Z" /></svg> Live Stream Monitor</a></li>
-                        <li><a class="dropdown-item d-flex align-items-center" th:href="@{/compliance/audit-logs}"><svg class="heroicon me-2 text-secondary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 12h.007v.008H3.75V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 17.25h.007v.008H3.75v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" /></svg> Immutable Audit Logs</a></li>
-                        <li><a class="dropdown-item d-flex align-items-center" th:href="@{/compliance/activity}"><svg class="heroicon me-2 text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z" /></svg> Vote Activity Stream</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item d-flex align-items-center" th:href="@{/compliance/alerts}"><svg class="heroicon me-2 text-warning" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0M3.124 7.5A8.969 8.969 0 0 1 5.292 3m13.416 0a8.969 8.969 0 0 1 2.168 4.5" /></svg> Security Alerts</a></li>
-                        <li><a class="dropdown-item d-flex align-items-center" th:href="@{/compliance/fraud-reports}"><svg class="heroicon me-2 text-danger" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M12 9v3.75m0-10.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.75c0 5.592 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.57-.598-3.75h-.152c-3.196 0-6.1-1.25-8.25-3.286Zm0 13.036h.008v.008H12v-.008Z" /></svg> Fraud Reports</a></li>
-                        <li><a class="dropdown-item d-flex align-items-center" th:href="@{/compliance/voting-rules}"><svg class="heroicon me-2 text-light" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" /></svg> Voting Rules</a></li>
-                        <li><a class="dropdown-item d-flex align-items-center" th:href="@{/compliance/advertising}"><svg class="heroicon me-2 text-warning" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M2.25 7.125C2.25 6.504 2.754 6 3.375 6h6c.621 0 1.125.504 1.125 1.125v6c0 .621-.504 1.125-1.125 1.125h-6A1.125 1.125 0 0 1 2.25 13.125v-6ZM14.25 8.625c0-.621.504-1.125 1.125-1.125h5.25c.621 0 1.125.504 1.125 1.125v8.25c0 .621-.504 1.125-1.125 1.125h-5.25a1.125 1.125 0 0 1-1.125-1.125v-8.25ZM3.75 16.125c0-.621.504-1.125 1.125-1.125h5.25c.621 0 1.125.504 1.125 1.125v2.25c0 .621-.504 1.125-1.125 1.125h-5.25a1.125 1.125 0 0 1-1.125-1.125v-2.25Z" /></svg> Ad Compliance Review</a></li>
-                    </ul>
-                </li>
-
-                <!-- ═══ JUDGE MENU ═══ -->
-                <li class="nav-item dropdown" sec:authorize="hasRole('JUDGE')">
-                    <a class="nav-link dropdown-toggle" href="#" id="judgeDrop" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="fa-solid fa-star-half-stroke me-1 text-warning"></i> Adjudication
-                    </a>
-                    <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="judgeDrop">
-                        <li><a class="dropdown-item" th:href="@{/judge/scores}"><i class="fa-solid fa-clipboard-check me-2 text-success"></i>Score Contestants</a></li>
-                        <li><a class="dropdown-item" th:href="@{/judge/scores/history}"><i class="fa-solid fa-clock-rotate-left me-2 text-info"></i>My Scoring History</a></li>
-                    </ul>
-                </li>
-
-                <!-- ═══ COMMERCIAL & REPORTS (Admin, Marketing, Reporting) ═══ -->
-                <li class="nav-item dropdown" sec:authorize="hasRole('ADMINISTRATOR')">
-                    <a class="nav-link dropdown-toggle" href="#" id="commDrop" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="fa-solid fa-chart-line me-1"></i> Intelligence
-                    </a>
-                    <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="commDrop">
-                        <li><a class="dropdown-item" th:href="@{/marketing}"><i class="fa-solid fa-bullhorn me-2 text-warning"></i>Marketing &amp; Ads Hub</a></li>
-                        <li><a class="dropdown-item" th:href="@{/reports/dashboard}"><i class="fa-solid fa-chart-pie me-2 text-success"></i>Reports &amp; Analytics</a></li>
-                        <li><a class="dropdown-item" th:href="@{/reports/rankings}"><i class="fa-solid fa-ranking-star me-2 text-info"></i>Contestant Standings</a></li>
-                    </ul>
-                </li>
-
-                <!-- Marketing Officer only (non-admin) -->
-                <li class="nav-item" sec:authorize="hasRole('MARKETING_OFFICER') and !hasRole('ADMINISTRATOR')">
-                    <a class="nav-link" th:href="@{/marketing}">
-                        <i class="fa-solid fa-bullhorn me-1 text-warning"></i> Marketing &amp; Ads
+                <li class="nav-item" sec:authorize="hasRole('ADMINISTRATOR')">
+                    <a class="nav-link" th:href="@{/admin/judges}">
+                        <i class="fa-solid fa-gavel"></i> Judges &amp; Panels
                     </a>
                 </li>
-
-                <!-- Reporting Manager only (non-admin) -->
-                <li class="nav-item dropdown" sec:authorize="hasRole('REPORTING_MANAGER') and !hasRole('ADMINISTRATOR')">
-                    <a class="nav-link dropdown-toggle" href="#" id="reportingDrop" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="fa-solid fa-chart-line me-1"></i> Reports
+                <li class="nav-item" sec:authorize="hasRole('JUDGE')">
+                    <a class="nav-link" th:href="@{/judge/scores}">
+                        <i class="fa-solid fa-star-half-stroke"></i> Score Contestants
                     </a>
-                    <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="reportingDrop">
-                        <li><a class="dropdown-item" th:href="@{/reports/dashboard}"><i class="fa-solid fa-chart-pie me-2 text-success"></i>Dashboard</a></li>
-                        <li><a class="dropdown-item" th:href="@{/reports/rankings}"><i class="fa-solid fa-ranking-star me-2 text-info"></i>Rankings</a></li>
-                    </ul>
                 </li>
-
-                <!-- ═══ VIEWER MENUS ═══ -->
+                <li class="nav-item" sec:authorize="hasRole('JUDGE')">
+                    <a class="nav-link" th:href="@{/judge/scores/history}">
+                        <i class="fa-solid fa-clock-rotate-left"></i> My Scores
+                    </a>
+                </li>
                 <li class="nav-item" sec:authorize="hasRole('VIEWER')">
-                    <a class="nav-link active" th:href="@{/vote}">
-                        <i class="fa-solid fa-check-to-slot me-1 text-accent"></i> Vote Now
+                    <a class="nav-link" th:href="@{/vote}">
+                        <i class="fa-solid fa-check-to-slot"></i> Vote Now
                     </a>
                 </li>
                 <li class="nav-item" sec:authorize="hasRole('VIEWER')">
                     <a class="nav-link" th:href="@{/vote/history}">
-                        <i class="fa-solid fa-clock-rotate-left me-1"></i> My Votes
+                        <i class="fa-solid fa-clock-rotate-left"></i> My Votes
                     </a>
                 </li>
                 <li class="nav-item" sec:authorize="hasRole('VIEWER')">
                     <a class="nav-link" th:href="@{/support/tickets}">
-                        <i class="fa-solid fa-headset me-1"></i> Support Desk
+                        <i class="fa-solid fa-headset"></i> Support
                     </a>
                 </li>
-
-                <!-- ═══ SUPPORT STAFF ═══ -->
-                <li class="nav-item dropdown" sec:authorize="hasAnyRole('ADMINISTRATOR','SUPPORT_STAFF')">
-                    <a class="nav-link dropdown-toggle" href="#" id="supportStaffDrop" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="fa-solid fa-headset me-1"></i> Support
-                    </a>
-                    <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="supportStaffDrop">
-                        <li><a class="dropdown-item" th:href="@{/staff/support/tickets}"><i class="fa-solid fa-ticket me-2 text-warning"></i>Customer Tickets</a></li>
-                        <li><a class="dropdown-item" th:href="@{/staff/faqs}"><i class="fa-solid fa-circle-question me-2 text-info"></i>Manage FAQs</a></li>
-                    </ul>
-                </li>
-
-                <!-- Public Help -->
-                <li class="nav-item" sec:authorize="!hasAnyRole('ADMINISTRATOR','SUPPORT_STAFF')">
-                    <a class="nav-link" th:href="@{/faq}">
-                        <i class="fa-regular fa-circle-question me-1"></i> Help &amp; FAQs
+                <li class="nav-item" sec:authorize="hasAnyRole('ADMINISTRATOR','SUPPORT_STAFF')">
+                    <a class="nav-link" th:href="@{/staff/support/tickets}">
+                        <i class="fa-solid fa-headset"></i> Tickets
                     </a>
                 </li>
-            </ul>
-
-            <!-- ═══ RIGHT: THEME TOGGLE, AUTH & USER CONTROLS ═══ -->
-            <ul class="navbar-nav ms-auto align-items-center gap-1">
-                <!-- Flowbite Theme Switcher (Dark / Light) -->
+                <li class="nav-item" sec:authorize="hasAnyRole('ADMINISTRATOR','SUPPORT_STAFF')">
+                    <a class="nav-link" th:href="@{/staff/faqs}">
+                        <i class="fa-solid fa-circle-question"></i> FAQs
+                    </a>
+                </li>
                 <li class="nav-item">
-                    <button id="themeToggleBtn" type="button" class="btn btn-sm btn-outline-secondary d-flex align-items-center justify-content-center p-2 rounded-circle" title="Toggle Dark/Light theme" aria-label="Toggle theme">
-                        <svg id="themeToggleDarkIcon" class="heroicon heroicon-sm d-none" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
-                        <svg id="themeToggleLightIcon" class="heroicon heroicon-sm d-none" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clip-rule="evenodd"></path></svg>
-                    </button>
-                </li>
-
-                <li class="nav-item dropdown" sec:authorize="isAuthenticated()">
-                    <a class="nav-link dropdown-toggle d-flex align-items-center gap-2" href="#" id="userProfileDrop" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <div style="width:28px; height:28px; border-radius:50%; background:var(--rv-accent); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:0.78rem;">
-                            <i class="fa-solid fa-user"></i>
-                        </div>
-                        <span sec:authentication="name" class="fw-semibold text-light small">User</span>
+                    <a class="nav-link" th:href="@{/faq}">
+                        <i class="fa-regular fa-circle-question"></i> Help
                     </a>
-                    <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark" aria-labelledby="userProfileDrop">
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" th:href="@{/profile}"><i class="fa-solid fa-id-card me-2 text-info"></i>My Account Profile</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li>
-                            <form th:action="@{/logout}" method="post" class="px-2 py-1">
-                                <button type="submit" class="btn btn-sm btn-outline-danger w-100">
-                                    <i class="fa-solid fa-right-from-bracket me-1"></i> Sign Out
-                                </button>
-                            </form>
-                        </li>
-                    </ul>
+                </li>
+                <li class="nav-item" sec:authorize="hasAnyRole('ADMINISTRATOR','COMPLIANCE_OFFICER')">
+                    <a class="nav-link" th:href="@{/compliance/dashboard}">
+                        <i class="fa-solid fa-shield-halved"></i> Compliance
+                    </a>
+                </li>
+                <li class="nav-item" sec:authorize="hasAnyRole('ADMINISTRATOR','COMPLIANCE_OFFICER')">
+                    <a class="nav-link" th:href="@{/compliance/monitoring}">
+                        <i class="fa-solid fa-tower-broadcast"></i> Live Monitor
+                    </a>
+                </li>
+                <li class="nav-item" sec:authorize="hasAnyRole('ADMINISTRATOR','COMPLIANCE_OFFICER')">
+                    <a class="nav-link" th:href="@{/compliance/audit-logs}">
+                        <i class="fa-solid fa-list-check"></i> Audit Logs
+                    </a>
+                </li>
+                <li class="nav-item" sec:authorize="hasAnyRole('ADMINISTRATOR','COMPLIANCE_OFFICER')">
+                    <a class="nav-link" th:href="@{/compliance/activity}">
+                        <i class="fa-solid fa-chart-bar"></i> Vote Activity
+                    </a>
+                </li>
+                <li class="nav-item" sec:authorize="hasAnyRole('ADMINISTRATOR','COMPLIANCE_OFFICER')">
+                    <a class="nav-link" th:href="@{/compliance/alerts}">
+                        <i class="fa-solid fa-bell"></i> Alerts
+                    </a>
+                </li>
+                <li class="nav-item" sec:authorize="hasAnyRole('ADMINISTRATOR','COMPLIANCE_OFFICER')">
+                    <a class="nav-link" th:href="@{/compliance/fraud-reports}">
+                        <i class="fa-solid fa-magnifying-glass-chart"></i> Fraud Reports
+                    </a>
+                </li>
+                <li class="nav-item" sec:authorize="hasAnyRole('ADMINISTRATOR','COMPLIANCE_OFFICER')">
+                    <a class="nav-link" th:href="@{/compliance/voting-rules}">
+                        <i class="fa-solid fa-sliders"></i> Voting Rules
+                    </a>
+                </li>
+                <li class="nav-item" sec:authorize="hasAnyRole('ADMINISTRATOR','MARKETING_OFFICER')">
+                    <a class="nav-link" th:href="@{/marketing}">
+                        <i class="fa-solid fa-bullhorn"></i> Marketing &amp; Ads
+                    </a>
+                </li>
+                <li class="nav-item" sec:authorize="hasAnyRole('ADMINISTRATOR','COMPLIANCE_OFFICER')">
+                    <a class="nav-link" th:href="@{/compliance/advertising}">
+                        <i class="fa-solid fa-gavel"></i> Ad Compliance
+                    </a>
+                </li>
+                <li class="nav-item" sec:authorize="hasAnyRole('ADMINISTRATOR','REPORTING_MANAGER')">
+                    <a class="nav-link" th:href="@{/reports/dashboard}">
+                        <i class="fa-solid fa-chart-line"></i> Reports
+                    </a>
+                </li>
+                <li class="nav-item" sec:authorize="isAuthenticated()">
+                    <a class="nav-link" th:href="@{/profile}">
+                        <i class="fa-solid fa-user"></i> Profile
+                    </a>
+                </li>
+                <li class="nav-item" sec:authorize="isAuthenticated()">
+                    <form th:action="@{/logout}" method="post" class="d-inline">
+                        <button type="submit" class="btn btn-sm btn-outline-light ms-2">Logout</button>
+                    </form>
                 </li>
                 <li class="nav-item" sec:authorize="!isAuthenticated()">
-                    <a class="nav-link" th:href="@{/register}"><i class="fa-solid fa-user-plus me-1"></i> Register</a>
+                    <a class="nav-link" th:href="@{/register}">Register</a>
                 </li>
                 <li class="nav-item" sec:authorize="!isAuthenticated()">
-                    <a class="btn btn-sm btn-accent ms-2 px-3" th:href="@{/login}"><i class="fa-solid fa-right-to-bracket me-1"></i> Login</a>
+                    <a class="btn btn-sm btn-accent ms-2" th:href="@{/login}">Login</a>
                 </li>
             </ul>
         </div>
     </div>
 </nav>
-
-<!-- ═══ BREADCRUMB COMPONENT (Flowbite Admin Pattern) ═══ -->
-<div th:fragment="breadcrumbs(crumbs)" class="container mt-3 mb-2" th:if="${crumbs != null and !crumbs.isEmpty()}">
-    <nav aria-label="Breadcrumb">
-        <ol class="d-flex align-items-center flex-wrap gap-2 list-unstyled mb-0 py-1 px-3 rounded" style="background:var(--rv-navy-2);border:1px solid var(--rv-border);font-size:0.82rem;">
-            <li class="d-flex align-items-center gap-1">
-                <a th:href="@{/}" class="text-decoration-none" style="color:var(--rv-text-muted);">
-                    <svg class="heroicon heroicon-sm" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"/></svg>
-                    <span>Home</span>
-                </a>
-            </li>
-            <li th:each="c, iter : ${crumbs}" class="d-flex align-items-center gap-2">
-                <svg class="heroicon heroicon-sm" style="color:var(--rv-border);" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg>
-                <a th:if="${!iter.last and c.url != null}" th:href="${c.url}" th:text="${c.label}" class="text-decoration-none" style="color:var(--rv-text-muted);"></a>
-                <span th:if="${iter.last or c.url == null}" th:text="${c.label}" class="fw-semibold" style="color:var(--rv-cyan);"></span>
-            </li>
-        </ol>
-    </nav>
-</div>
-
-<footer th:fragment="footer" class="rv-footer mt-5 py-4 text-center text-muted" style="border-top:1px solid var(--rv-border); font-size:0.85rem;">
-    <div class="container d-flex flex-column flex-sm-row justify-content-between align-items-center gap-2">
-        <div>
-            <strong>RealityVote</strong> &mdash; IT2140 / SE2030 Broadcast Voting Platform
-        </div>
-        <div class="rv-mono small">
-            Spring Boot 3.3.4 &bull; Thymeleaf &bull; SQL Server &bull; Apache ECharts
-        </div>
-    </div>
-    <!-- Flowbite Theme Management Script -->
-    <script>
-        (function() {
-            const toggleBtn = document.getElementById('themeToggleBtn');
-            const darkIcon = document.getElementById('themeToggleDarkIcon');
-            const lightIcon = document.getElementById('themeToggleLightIcon');
-
-            function syncThemeIcons(theme) {
-                if (!darkIcon || !lightIcon) return;
-                if (theme === 'dark') {
-                    lightIcon.classList.remove('d-none');
-                    darkIcon.classList.add('d-none');
-                } else {
-                    darkIcon.classList.remove('d-none');
-                    lightIcon.classList.add('d-none');
-                }
-            }
-
-            const currentTheme = localStorage.getItem('rv-theme') || 'dark';
-            syncThemeIcons(currentTheme);
-
-            if (toggleBtn) {
-                toggleBtn.addEventListener('click', function() {
-                    const activeTheme = document.documentElement.getAttribute('data-bs-theme') === 'light' ? 'dark' : 'light';
-                    document.documentElement.setAttribute('data-bs-theme', activeTheme);
-                    localStorage.setItem('rv-theme', activeTheme);
-                    if (activeTheme === 'light') {
-                        document.documentElement.classList.add('light');
-                        document.documentElement.classList.remove('dark');
-                    } else {
-                        document.documentElement.classList.add('dark');
-                        document.documentElement.classList.remove('light');
-                    }
-                    syncThemeIcons(activeTheme);
-                    window.dispatchEvent(new CustomEvent('themeChanged', { detail: { theme: activeTheme } }));
-                });
-            }
-        })();
-    </script>
-</footer>
 </body>
 </html>
